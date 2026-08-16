@@ -1,0 +1,65 @@
+{
+  "products": [
+    {
+      "productId": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01",
+      "description": "O Wave Pro foi feito para quem quer se concentrar no que importa. O cancelamento ativo de ruído reduz distrações, enquanto os drivers de alta definição entregam graves equilibrados e vozes nítidas. Com conexão Bluetooth estável e controles intuitivos, ele acompanha sua rotina no trabalho, nos estudos e no caminho para casa.",
+      "highlights": ["Cancelamento ativo de ruído", "Até 30 horas de bateria", "Conexão Bluetooth 5.3"],
+      "images": [
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1400&q=80",
+        "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=1400&q=80"
+      ],
+      "variants": [
+        { "id": "wave-pro-black", "label": "Preto", "value": "preto", "available": true },
+        { "id": "wave-pro-white", "label": "Branco", "value": "branco", "available": true }
+      ],
+      "specifications": [
+        { "label": "Bateria", "value": "Até 30 horas" },
+        { "label": "Conexão", "value": "Bluetooth 5.3" },
+        { "label": "Peso", "value": "240 g" }
+      ],
+      "shipping": { "estimatedDelivery": "3 a 6 dias úteis", "returns": "Devolução em até 30 dias" }
+    },
+    {
+      "productId": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02",
+      "description": "A Luminária Orbit combina uma base compacta com luz LED regulável para iluminar sua mesa com conforto. Ajuste a intensidade e o ângulo conforme a tarefa, criando um ambiente mais agradável para leitura, trabalho ou estudo.",
+      "highlights": ["Luz LED ajustável", "Braço com ajuste de ângulo", "Base compacta"],
+      "images": ["https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1400&q=80"],
+      "variants": [{ "id": "orbit-graphite", "label": "Grafite", "value": "grafite", "available": true }],
+      "specifications": [
+        { "label": "Iluminação", "value": "LED regulável" },
+        { "label": "Alimentação", "value": "USB-C" },
+        { "label": "Material", "value": "Alumínio e ABS" }
+      ],
+      "shipping": { "estimatedDelivery": "3 a 6 dias úteis", "returns": "Devolução em até 30 dias" }
+    },
+    {
+      "productId": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03",
+      "description": "A Mochila Urban oferece espaço organizado e construção resistente para acompanhar a rotina. O compartimento interno acolchoado protege seus itens e os bolsos de acesso rápido mantêm o essencial sempre por perto.",
+      "highlights": ["Compartimento para notebook", "Tecido resistente à água", "Bolsos de acesso rápido"],
+      "images": ["https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1400&q=80"],
+      "variants": [{ "id": "urban-black", "label": "Preto", "value": "preto", "available": false }],
+      "specifications": [
+        { "label": "Capacidade", "value": "18 litros" },
+        { "label": "Notebook", "value": "Até 15 polegadas" },
+        { "label": "Material", "value": "Poliéster reciclado" }
+      ],
+      "shipping": { "estimatedDelivery": "3 a 6 dias úteis", "returns": "Devolução em até 30 dias" }
+    },
+    {
+      "productId": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04",
+      "description": "A Garrafa Terra mantém suas bebidas na temperatura ideal e foi pensada para acompanhar você em qualquer lugar. Seu corpo em aço inoxidável é resistente, não transfere sabores e cabe com facilidade na mochila.",
+      "highlights": ["Parede dupla de aço inox", "Mantém bebidas geladas ou quentes", "Capacidade de 500 ml"],
+      "images": ["https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1400&q=80"],
+      "variants": [
+        { "id": "terra-sand", "label": "Areia", "value": "areia", "available": true },
+        { "id": "terra-green", "label": "Verde", "value": "verde", "available": true }
+      ],
+      "specifications": [
+        { "label": "Capacidade", "value": "500 ml" },
+        { "label": "Material", "value": "Aço inoxidável" },
+        { "label": "Tampa", "value": "Rosqueável e vedada" }
+      ],
+      "shipping": { "estimatedDelivery": "3 a 6 dias úteis", "returns": "Devolução em até 30 dias" }
+    }
+  ]
+}

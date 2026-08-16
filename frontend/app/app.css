@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@keyframes menu-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes menu-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(-1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes menu-overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes menu-drawer-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-1rem);
+  }
+}
+
+@keyframes cart-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes cart-drawer-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+}
+
+@keyframes carousel-indicator-in {
+  from {
+    opacity: 0.55;
+    transform: scaleX(0.65);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}

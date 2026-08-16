@@ -1,0 +1,80 @@
+{
+  "profile": {
+    "id": "user-001",
+    "name": "Marina Costa",
+    "email": "marina.costa@example.com",
+    "phone": "+55 11 99999-0000",
+    "createdAt": "2026-05-10T14:30:00.000Z"
+  },
+  "addresses": [
+    {
+      "id": "address-home",
+      "label": "Casa",
+      "recipient": "Marina Costa",
+      "street": "Rua das Acácias",
+      "number": "120",
+      "complement": "Apto. 42",
+      "neighborhood": "Vila Mariana",
+      "city": "São Paulo",
+      "state": "SP",
+      "postalCode": "04110-000",
+      "isDefault": true
+    }
+  ],
+  "cart": {
+    "id": "cart-user-001",
+    "updatedAt": "2026-08-15T13:45:00.000Z",
+    "coupon": null,
+    "items": [
+      {
+        "id": "cart-item-001",
+        "productId": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01",
+        "variantId": "wave-pro-black",
+        "quantity": 1,
+        "unitPrice": 349.9,
+        "addedAt": "2026-08-15T13:20:00.000Z"
+      },
+      {
+        "id": "cart-item-002",
+        "productId": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04",
+        "variantId": "terra-green",
+        "quantity": 2,
+        "unitPrice": 99.9,
+        "addedAt": "2026-08-15T13:45:00.000Z"
+      }
+    ],
+    "summary": {
+      "subtotal": 549.7,
+      "discount": 0,
+      "shipping": 0,
+      "total": 549.7
+    }
+  },
+  "favoriteProductIds": [
+    "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02",
+    "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04"
+  ],
+  "orders": [
+    {
+      "id": "order-2026-0001",
+      "status": "DELIVERED",
+      "createdAt": "2026-07-22T16:10:00.000Z",
+      "deliveredAt": "2026-07-26T14:20:00.000Z",
+      "addressId": "address-home",
+      "items": [
+        {
+          "productId": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02",
+          "variantId": "orbit-graphite",
+          "productName": "Luminária Orbit",
+          "quantity": 1,
+          "unitPrice": 189.9
+        }
+      ],
+      "summary": {
+        "subtotal": 189.9,
+        "shipping": 0,
+        "total": 189.9
+      }
+    }
+  ]
+}

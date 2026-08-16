@@ -1,0 +1,93 @@
+{
+  "store": {
+    "name": "Scout Store",
+    "currency": "BRL",
+    "locale": "pt-BR",
+    "freeShippingMinimum": 20
+  },
+  "home": {
+    "featuredProductIds": [
+      "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01",
+      "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02",
+      "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04"
+    ]
+  },
+  "categories": [
+    {
+      "id": "tech",
+      "name": "Tecnologia",
+      "slug": "tecnologia",
+      "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "home",
+      "name": "Casa e escritório",
+      "slug": "casa-e-escritorio",
+      "image": "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "id": "accessories",
+      "name": "Acessórios",
+      "slug": "acessorios",
+      "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80"
+    }
+  ],
+  "products": [
+    {
+      "id": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01",
+      "name": "Fones Wave Pro",
+      "slug": "fones-wave-pro",
+      "categoryId": "tech",
+      "shortDescription": "Fones sem fio com cancelamento de ruído e até 30 horas de bateria.",
+      "price": 349.9,
+      "originalPrice": 429.9,
+      "rating": 4.8,
+      "reviewCount": 124,
+      "stock": 18,
+      "coverImage": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80",
+      "createdAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02",
+      "name": "Luminária Orbit",
+      "slug": "luminaria-orbit",
+      "categoryId": "home",
+      "shortDescription": "Luz LED ajustável para deixar sua mesa mais confortável e organizada.",
+      "price": 189.9,
+      "originalPrice": null,
+      "rating": 4.6,
+      "reviewCount": 67,
+      "stock": 9,
+      "coverImage": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1000&q=80",
+      "createdAt": "2026-08-08T10:00:00.000Z"
+    },
+    {
+      "id": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03",
+      "name": "Mochila Urban",
+      "slug": "mochila-urban",
+      "categoryId": "accessories",
+      "shortDescription": "Mochila resistente para levar o essencial durante a rotina.",
+      "price": 259.9,
+      "originalPrice": null,
+      "rating": 4.9,
+      "reviewCount": 89,
+      "stock": 0,
+      "coverImage": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1000&q=80",
+      "createdAt": "2026-08-10T10:00:00.000Z"
+    },
+    {
+      "id": "7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04",
+      "name": "Garrafa Terra",
+      "slug": "garrafa-terra",
+      "categoryId": "accessories",
+      "shortDescription": "Garrafa térmica de aço inoxidável, com capacidade de 500 ml.",
+      "price": 99.9,
+      "originalPrice": 119.9,
+      "rating": 4.7,
+      "reviewCount": 42,
+      "stock": 31,
+      "coverImage": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1000&q=80",
+      "createdAt": "2026-08-14T10:00:00.000Z"
+    }
+  ]
+}

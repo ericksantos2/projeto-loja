@@ -1,0 +1,30 @@
+{
+  "name": "Projeto Loja - Backend",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "vscjava.vscode-spring-initializr",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "java.configuration.maven.userSettings": "/app/.m2/settings.xml",
+        "java.import.maven.enabled": true
+      }
+    }
+  },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Backend (Spring Boot)",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "./mvnw dependency:resolve",
+  "remoteUser": "root"
+}
