@@ -1,8 +1,10 @@
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
+import storeData from "~/data/store.mock.json";
 import IconButton from "~/components/ui/IconButton";
 import { currencyFormatter, getDiscountPercentage } from "~/lib/formatters";
-import type { Product } from "~/data/store.mock.json";
+
+type Product = (typeof storeData.products)[number];
 
 interface FeaturedSlideDesktopProps {
   product: Product;
@@ -13,12 +15,12 @@ export function FeaturedSlideDesktop({ product }: FeaturedSlideDesktopProps) {
 
   return (
     <>
-      {/* Blurred background image */}
+      {/* Ambient background image */}
       <div className="hidden md:absolute md:inset-0 md:block">
         <img
           src={product.coverImage}
           alt=""
-          className="h-full w-full object-cover scale-110 blur-sm opacity-60"
+          className="h-full w-full object-cover scale-110 opacity-70 saturate-110"
         />
         <div className="absolute inset-0 bg-linear-to-r from-slate-950 via-slate-950/80 to-slate-950/60" />
       </div>
@@ -77,13 +79,17 @@ export function FeaturedSlideDesktop({ product }: FeaturedSlideDesktopProps) {
 
         {/* Product image card */}
         <div className="hidden md:block md:shrink-0">
-          <div className="rounded-2xl bg-slate-900/80 p-4 backdrop-blur-sm shadow-2xl lg:p-5">
+          <Link
+            to={`/produtos/${product.slug}`}
+            aria-label={`Ver detalhes de ${product.name}`}
+            className="block rounded-2xl border border-white/10 bg-slate-900/75 p-4 shadow-2xl transition hover:shadow-amber-500/20 lg:p-5"
+          >
             <img
               src={product.coverImage}
               alt={product.name}
               className="h-80 w-80 rounded-xl object-cover lg:h-100 lg:w-100"
             />
-          </div>
+          </Link>
         </div>
       </div>
     </>

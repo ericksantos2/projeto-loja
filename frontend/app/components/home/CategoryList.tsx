@@ -31,7 +31,7 @@ export default function CategoryList() {
               <img
                 src={category.image}
                 alt=""
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                className="h-full w-full object-cover transition duration-500 scale-101 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-linear-to-t from-slate-950/85 via-slate-950/10 to-transparent" />
               <span className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-3 text-lg font-bold text-white">

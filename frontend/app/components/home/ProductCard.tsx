@@ -12,11 +12,17 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="relative aspect-square overflow-hidden bg-slate-100">
-        <img
-          src={product.coverImage}
-          alt={product.name}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-        />
+        <Link
+          to={`/produtos/${product.slug}`}
+          aria-label={`Ver detalhes de ${product.name}`}
+          className="block h-full w-full"
+        >
+          <img
+            src={product.coverImage}
+            alt={product.name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          />
+        </Link>
         {discount && (
           <span className="absolute left-3 top-3 rounded-full bg-amber-300 px-2.5 py-1 text-xs font-bold text-slate-950">
             -{discount}%

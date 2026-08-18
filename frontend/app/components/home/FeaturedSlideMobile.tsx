@@ -64,14 +64,18 @@ export function FeaturedSlideMobile({ product }: FeaturedSlideMobileProps) {
       </div>
 
       {/* Cover image */}
-      <div className="relative order-1 h-[15.5rem] overflow-hidden md:hidden">
+      <Link
+        to={`/produtos/${product.slug}`}
+        aria-label={`Ver detalhes de ${product.name}`}
+        className="relative order-1 block h-62 overflow-hidden md:hidden"
+      >
         <img
           src={product.coverImage}
           alt={product.name}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-linear-to-t from-slate-950/30 to-transparent" />
-      </div>
+      </Link>
     </>
   );
 }

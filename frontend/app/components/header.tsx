@@ -1,6 +1,6 @@
 import { Menu, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 import CartDrawer from "./CartDrawer";
 import MobileMenu from "./MobileMenu";
 import { mainNavigation } from "./navigation";
@@ -42,17 +42,30 @@ export default function Header() {
           className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 md:flex lg:gap-9"
         >
           {mainNavigation.map((item) => (
-            <Link
+            <NavLink
               key={item.to}
               to={item.to}
-              className="group relative text-sm font-medium text-slate-600 transition hover:text-slate-950 lg:text-base"
+              end={item.to === "/"}
+              className={({ isActive }) =>
+                `group relative text-sm font-medium transition lg:text-base ${
+                  isActive
+                    ? "text-slate-950"
+                    : "text-slate-600 hover:text-slate-950"
+                }`
+              }
             >
-              {item.label}
-              <span
-                className="absolute -bottom-1 left-0 h-0.5 w-0 bg-amber-400 transition-all duration-300 group-hover:w-full"
-                aria-hidden="true"
-              />
-            </Link>
+              {({ isActive }) => (
+                <>
+                  {item.label}
+                  <span
+                    className={`absolute -bottom-1 left-0 h-0.5 bg-amber-400 transition-all duration-300 ${
+                      isActive ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                    aria-hidden="true"
+                  />
+                </>
+              )}
+            </NavLink>
           ))}
         </nav>
 

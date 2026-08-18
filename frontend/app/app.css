@@ -1,5 +1,30 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: light;
+  background-color: #f8fafc;
+}
+
+html {
+  background-color: #f8fafc;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f8fafc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+section[id],
+[id] {
+  scroll-margin-top: -2rem;
+}
+
 @keyframes menu-overlay-in {
   from {
     opacity: 0;
@@ -21,8 +46,12 @@
 }
 
 @keyframes menu-overlay-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes menu-drawer-out {
