@@ -1,5 +1,7 @@
 package com.ericksantos2.api_produtos.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,5 +23,6 @@ public class EspecificacaoModel {
   private String value;
 
   @ManyToOne
+  @JsonIgnore
   private ProdutoModel produto;
 }

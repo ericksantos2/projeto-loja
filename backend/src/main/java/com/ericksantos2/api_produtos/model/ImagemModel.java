@@ -2,6 +2,8 @@ package com.ericksantos2.api_produtos.model;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,5 +23,6 @@ public class ImagemModel {
   private String imagemUrl;
 
   @ManyToOne
+  @JsonIgnore
   private ProdutoModel produto;
 }
