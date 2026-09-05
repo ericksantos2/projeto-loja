@@ -11,7 +11,11 @@ import java.util.List;
 
 public class TokenFilter extends OncePerRequestFilter {
 
-  private final String authToken = System.getProperty("APP_TOKEN");
+  private final String authToken;
+
+  public TokenFilter(String authToken) {
+    this.authToken = authToken;
+  }
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
