@@ -36,7 +36,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=root
       - UPLOAD_DIR=/app/uploads
     volumes:
-      - ./backend/uploads:/app/uploads # Garante a persistência dos arquivos upados pelos usuários
+      - ./backend/uploads:/app/uploads:Z # Garante a persistência dos arquivos upados pelos usuários
     depends_on:
       db:
         condition: service_healthy # Aguarda o MySQL estar 100% pronto (healthcheck)
