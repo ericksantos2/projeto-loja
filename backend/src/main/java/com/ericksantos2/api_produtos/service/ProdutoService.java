@@ -1,16 +1,11 @@
 package com.ericksantos2.api_produtos.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,19 +24,28 @@ import com.ericksantos2.api_produtos.repository.ProdutoRepository;
 @Service
 public class ProdutoService {
 
-  @Autowired
-  private ProdutoRepository repository;
-  @Autowired
-  private ProdutoMapper mapper;
+  private final ProdutoRepository repository;
+  private final ProdutoMapper mapper;
+  private final FileStorageService storageService;
+  private final ProdutoImagemService imagemService;
+  private final ProdutoAtributoService atributoService;
 
-  private final String pastaUpload = System.getProperty("user.dir") + "/uploads/";
-  private final Path diretorioUpload = Paths.get(pastaUpload);
+  public ProdutoService(
+      ProdutoRepository repository,
+      ProdutoMapper mapper,
+      FileStorageService storageService,
+      ProdutoImagemService imagemService,
+      ProdutoAtributoService atributoService) {
+    this.repository = repository;
+    this.mapper = mapper;
+    this.storageService = storageService;
+    this.imagemService = imagemService;
+    this.atributoService = atributoService;
+  }
 
   @Transactional(readOnly = true)
   public List<ProdutoResumoDTO> listarResumo() {
-    return repository.findAll().stream()
-        .map(mapper::toResumoDTO)
-        .toList();
+    return repository.listarResumo();
   }
 
   @Transactional(readOnly = true)
@@ -69,7 +73,7 @@ public class ProdutoService {
 
     if (produtoDTO.getImagens() != null && !produtoDTO.getImagens().isEmpty()) {
       for (MultipartFile imagem : produtoDTO.getImagens()) {
-        String imagemUrl = salvarImagem(imagem);
+        String imagemUrl = storageService.save(imagem);
         ImagemModel imagemModel = new ImagemModel();
         imagemModel.setImagemUrl(imagemUrl);
         imagemModel.setProduto(produto);
@@ -98,18 +102,9 @@ public class ProdutoService {
     return repository.save(produto);
   }
 
-  public ProdutoModel mudar(String id, AtualizarProdutoDTO produto) throws IOException {
+  public ProdutoModel mudar(UUID id, AtualizarProdutoDTO produto) throws IOException {
     ProdutoModel produtoExistente = busca(id);
     mapper.updateProdutoFromDto(produto, produtoExistente);
-
-    if (produto.getImagens() != null && !produto.getImagens().isEmpty()) {
-      for (MultipartFile imagem : produto.getImagens()) {
-        ImagemModel imagemModel = new ImagemModel();
-        imagemModel.setImagemUrl(salvarImagem(imagem));
-        imagemModel.setProduto(produtoExistente);
-        produtoExistente.getImagens().add(imagemModel);
-      }
-    }
 
     if (produto.getImagemPrincipal() != null) {
       boolean imagemPertenceAoProduto = produtoExistente.getImagens().stream()
@@ -122,56 +117,81 @@ public class ProdutoService {
       produtoExistente.setImagemPrincipal(produto.getImagemPrincipal());
     }
 
-    if (produto.getEspecificacoes() != null) {
-      if (produtoExistente.getEspecificacoes() == null)
-        produtoExistente.setEspecificacoes(new ArrayList<>());
-      produtoExistente.getEspecificacoes().clear();
-      for (EspecificacaoModel especificacao : produto.getEspecificacoes()) {
-        especificacao.setProduto(produtoExistente);
-        produtoExistente.getEspecificacoes().add(especificacao);
-      }
-    }
-
-    if (produto.getVariantes() != null) {
-      if (produtoExistente.getVariantes() == null)
-        produtoExistente.setVariantes(new ArrayList<>());
-      produtoExistente.getVariantes().clear();
-      for (VarianteModel variante : produto.getVariantes()) {
-        variante.setProduto(produtoExistente);
-        produtoExistente.getVariantes().add(variante);
-      }
-    }
-
     return repository.save(produtoExistente);
   }
 
-  public void deletar(String id) throws IOException {
-    ProdutoModel produto = busca(id);
+  @Transactional
+  public Optional<List<String>> substituirHighlights(UUID produtoId, List<String> highlights) {
+    if (highlights == null || highlights.stream().anyMatch(item -> item == null || item.isBlank())) {
+      throw new IllegalArgumentException("Highlights nao podem ser nulos ou vazios.");
+    }
+    Optional<ProdutoModel> produtoEncontrado = repository.findById(produtoId);
+    if (produtoEncontrado.isEmpty()) {
+      return Optional.empty();
+    }
+
+    ProdutoModel produto = produtoEncontrado.get();
+    if (produto.getHighlights() == null) {
+      produto.setHighlights(new ArrayList<>());
+    } else {
+      produto.getHighlights().clear();
+    }
+    produto.getHighlights().addAll(highlights);
+    repository.saveAndFlush(produto);
+    return Optional.of(List.copyOf(produto.getHighlights()));
+  }
+
+  public Optional<List<EspecificacaoModel>> adicionarEspecificacoes(
+      UUID produtoId, List<com.ericksantos2.api_produtos.dto.produto.CriarEspecificacaoDTO> especificacoes) {
+    return atributoService.adicionarEspecificacoes(produtoId, especificacoes);
+  }
+
+  public Optional<List<VarianteModel>> adicionarVariantes(
+      UUID produtoId, List<com.ericksantos2.api_produtos.dto.produto.CriarVarianteDTO> variantes) {
+    return atributoService.adicionarVariantes(produtoId, variantes);
+  }
+
+  public boolean deletarEspecificacao(UUID produtoId, UUID especificacaoId) {
+    return atributoService.removerEspecificacao(produtoId, especificacaoId);
+  }
+
+  public boolean deletarVariante(UUID produtoId, UUID varianteId) {
+    return atributoService.removerVariante(produtoId, varianteId);
+  }
+
+  public Optional<List<ImagemModel>> adicionarImagens(UUID produtoId, List<MultipartFile> imagens) throws IOException {
+    return imagemService.adicionar(produtoId, imagens);
+  }
+
+  public Optional<ImagemModel> substituirImagem(
+      UUID produtoId, UUID imagemId, MultipartFile novaImagem) throws IOException {
+    return imagemService.substituir(produtoId, imagemId, novaImagem);
+  }
+
+  @Transactional
+  public boolean deletar(UUID id) throws IOException {
+    Optional<ProdutoModel> produtoEncontrado = repository.findById(id);
+    if (produtoEncontrado.isEmpty()) {
+      return false;
+    }
+
+    ProdutoModel produto = produtoEncontrado.get();
     if (produto.getImagens() != null) {
       for (ImagemModel imagem : produto.getImagens()) {
-        deletarImagem(imagem.getImagemUrl());
+        storageService.delete(imagem.getImagemUrl());
       }
     }
     repository.delete(produto);
+    repository.flush();
+    return true;
   }
 
-  private String salvarImagem(MultipartFile imagem) throws IOException {
-    UUID randomId = UUID.randomUUID();
-    if (!Files.exists(diretorioUpload)) {
-      Files.createDirectories(diretorioUpload);
-    }
-    String nomeArquivo = randomId + "_" + imagem.getOriginalFilename();
-    Path caminhoCompleto = diretorioUpload.resolve(nomeArquivo);
-    Files.copy(imagem.getInputStream(), caminhoCompleto, StandardCopyOption.REPLACE_EXISTING);
-    return nomeArquivo;
+  public boolean deletarImagem(UUID produtoId, UUID imagemId) throws IOException {
+    return imagemService.remover(produtoId, imagemId);
   }
 
-  private ProdutoModel busca(String id) {
-    return repository.findById(UUID.fromString(id))
+  private ProdutoModel busca(UUID id) {
+    return repository.findById(id)
         .orElseThrow(() -> new RuntimeException("Produto não encontrado."));
-  }
-
-  private void deletarImagem(String imagemUrl) throws IOException {
-    Files.deleteIfExists(diretorioUpload.resolve(imagemUrl));
   }
 }
