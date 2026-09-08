@@ -12,5 +12,6 @@ public record ProdutoResumoDTO(
     Double rating,
     Integer contagemReviews,
     Integer estoque,
-    String imagemPrincipal) {
+    String imagemPrincipal,
+    Long quantidadeImagens) {
 }

@@ -23,8 +23,6 @@ public interface ProdutoMapper {
   @Mapping(target = "imagemPrincipal", ignore = true)
   void updateProdutoFromDto(AtualizarProdutoDTO dto, @MappingTarget ProdutoModel entity);
 
-  ProdutoResumoDTO toResumoDTO(ProdutoModel produto);
-
   ProdutoDetalhadoDTO toDetalhadoDTO(ProdutoModel produto);
 
   ImagemResponseDTO toImagemResponseDTO(ImagemModel imagem);
