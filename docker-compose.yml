@@ -36,7 +36,9 @@ services:
       - SPRING_DATASOURCE_PASSWORD=root
       - UPLOAD_DIR=/app/uploads
     volumes:
+      - ./backend/src:/app/src:Z # Permite alterar o código sem reconstruir a imagem
       - ./backend/uploads:/app/uploads:Z # Garante a persistência dos arquivos upados pelos usuários
+      - maven_cache:/root/.m2 # Evita baixar dependências novamente
     depends_on:
       db:
         condition: service_healthy # Aguarda o MySQL estar 100% pronto (healthcheck)
@@ -61,3 +63,4 @@ services:
 volumes:
   mysql_data:
   frontend_node_modules:
+  maven_cache:
