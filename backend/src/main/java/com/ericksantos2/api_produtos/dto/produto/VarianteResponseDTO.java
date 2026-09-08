@@ -1,7 +1,9 @@
 package com.ericksantos2.api_produtos.dto.produto;
 
+import java.util.UUID;
+
 public record VarianteResponseDTO(
-    String id,
+    UUID id,
     String label,
     String value,
     Boolean available) {
