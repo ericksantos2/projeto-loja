@@ -1,7 +1,5 @@
 package com.ericksantos2.api_produtos.dto.produto;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 

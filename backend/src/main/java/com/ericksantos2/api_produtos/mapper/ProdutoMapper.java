@@ -6,7 +6,6 @@ import com.ericksantos2.api_produtos.dto.produto.AtualizarProdutoDTO;
 import com.ericksantos2.api_produtos.dto.produto.EspecificacaoResponseDTO;
 import com.ericksantos2.api_produtos.dto.produto.ImagemResponseDTO;
 import com.ericksantos2.api_produtos.dto.produto.ProdutoDetalhadoDTO;
-import com.ericksantos2.api_produtos.dto.produto.ProdutoResumoDTO;
 import com.ericksantos2.api_produtos.dto.produto.VarianteResponseDTO;
 import com.ericksantos2.api_produtos.model.EspecificacaoModel;
 import com.ericksantos2.api_produtos.model.ImagemModel;
