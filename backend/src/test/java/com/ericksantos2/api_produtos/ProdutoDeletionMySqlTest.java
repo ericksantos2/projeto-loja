@@ -24,7 +24,7 @@ import com.ericksantos2.api_produtos.repository.ProdutoRepository;
 import com.ericksantos2.api_produtos.service.ProdutoService;
 
 @SpringBootTest(properties = "file.upload-dir=target/test-uploads")
-@TestPropertySource(properties = "api.auth.token=test-token")
+@TestPropertySource(properties = "api.auth.jwt-secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
 class ProdutoDeletionMySqlTest {
 
   private static final Path uploadDirectory = Path.of("target/test-uploads");
