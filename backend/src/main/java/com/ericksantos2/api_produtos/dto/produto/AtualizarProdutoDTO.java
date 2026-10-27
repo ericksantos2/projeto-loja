@@ -9,6 +9,7 @@ public class AtualizarProdutoDTO {
   private String nome;
   private String descricao;
   private String slug;
+  private String categoryId;
   private String descricaoBreve;
   private Double preco;
   private Double precoOriginal;

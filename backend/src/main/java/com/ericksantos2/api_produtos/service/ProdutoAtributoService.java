@@ -39,8 +39,8 @@ public class ProdutoAtributoService {
       produto.getEspecificacoes().add(item);
       criadas.add(item);
     }
-    repository.saveAndFlush(produto);
-    return Optional.of(criadas);
+    repository.flush();
+    return Optional.of(List.copyOf(criadas));
   }
 
   @Transactional
@@ -60,8 +60,8 @@ public class ProdutoAtributoService {
       produto.getVariantes().add(item);
       criadas.add(item);
     }
-    repository.saveAndFlush(produto);
-    return Optional.of(criadas);
+    repository.flush();
+    return Optional.of(List.copyOf(criadas));
   }
 
   @Transactional

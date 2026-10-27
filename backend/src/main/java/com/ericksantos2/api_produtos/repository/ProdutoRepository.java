@@ -16,6 +16,7 @@ public interface ProdutoRepository extends JpaRepository<ProdutoModel, UUID> {
 		  p.id,
 		  p.nome,
 		  p.slug,
+		  p.categoryId,
 		  p.descricaoBreve,
 		  p.preco,
 		  p.precoOriginal,
@@ -26,7 +27,7 @@ public interface ProdutoRepository extends JpaRepository<ProdutoModel, UUID> {
 		  COUNT(i))
 	  FROM ProdutoModel p
 	  LEFT JOIN p.imagens i
-	  GROUP BY p.id, p.nome, p.slug, p.descricaoBreve, p.preco,
+	  GROUP BY p.id, p.nome, p.slug, p.categoryId, p.descricaoBreve, p.preco,
 		  p.precoOriginal, p.rating, p.contagemReviews, p.estoque,
 		  p.imagemPrincipal
 	  """)

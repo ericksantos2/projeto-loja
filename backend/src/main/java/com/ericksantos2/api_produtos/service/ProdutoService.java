@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ericksantos2.api_produtos.dto.produto.AtualizarProdutoDTO;
+import com.ericksantos2.api_produtos.dto.produto.CriarEspecificacaoDTO;
 import com.ericksantos2.api_produtos.dto.produto.CriarProdutoDTO;
+import com.ericksantos2.api_produtos.dto.produto.CriarVarianteDTO;
 import com.ericksantos2.api_produtos.dto.produto.ProdutoDetalhadoDTO;
 import com.ericksantos2.api_produtos.dto.produto.ProdutoResumoDTO;
 import com.ericksantos2.api_produtos.mapper.ProdutoMapper;
@@ -63,6 +65,7 @@ public class ProdutoService {
     produto.setNome(produtoDTO.getNome());
     produto.setDescricao(produtoDTO.getDescricao());
     produto.setSlug(produtoDTO.getSlug());
+    produto.setCategoryId(produtoDTO.getCategoryId());
     produto.setDescricaoBreve(produtoDTO.getDescricaoBreve());
     produto.setPreco(produtoDTO.getPreco());
     produto.setPrecoOriginal(produtoDTO.getPrecoOriginal());
@@ -86,14 +89,21 @@ public class ProdutoService {
     }
 
     if (produtoDTO.getEspecificacoes() != null && !produtoDTO.getEspecificacoes().isEmpty()) {
-      for (EspecificacaoModel especificacao : produtoDTO.getEspecificacoes()) {
+      for (CriarEspecificacaoDTO dados : produtoDTO.getEspecificacoes()) {
+        EspecificacaoModel especificacao = new EspecificacaoModel();
+        especificacao.setLabel(dados.label());
+        especificacao.setValue(dados.value());
         especificacao.setProduto(produto);
         produto.getEspecificacoes().add(especificacao);
       }
     }
 
     if (produtoDTO.getVariantes() != null && !produtoDTO.getVariantes().isEmpty()) {
-      for (VarianteModel variante : produtoDTO.getVariantes()) {
+      for (CriarVarianteDTO dados : produtoDTO.getVariantes()) {
+        VarianteModel variante = new VarianteModel();
+        variante.setLabel(dados.label());
+        variante.setValue(dados.value());
+        variante.setAvailable(dados.available());
         variante.setProduto(produto);
         produto.getVariantes().add(variante);
       }

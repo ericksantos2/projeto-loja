@@ -6,6 +6,7 @@ public record ProdutoResumoDTO(
     UUID id,
     String nome,
     String slug,
+    String categoryId,
     String descricaoBreve,
     Double preco,
     Double precoOriginal,

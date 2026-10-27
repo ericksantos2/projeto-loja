@@ -20,6 +20,7 @@ public interface ProdutoMapper {
   @Mapping(target = "variantes", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "imagemPrincipal", ignore = true)
+  @Mapping(target = "highlights", ignore = true)
   void updateProdutoFromDto(AtualizarProdutoDTO dto, @MappingTarget ProdutoModel entity);
 
   ProdutoDetalhadoDTO toDetalhadoDTO(ProdutoModel produto);

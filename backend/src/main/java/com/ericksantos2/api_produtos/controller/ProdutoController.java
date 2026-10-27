@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import com.ericksantos2.api_produtos.dto.produto.AtualizarProdutoDTO;
 import com.ericksantos2.api_produtos.dto.produto.CriarEspecificacaoDTO;
@@ -41,7 +44,12 @@ public class ProdutoController {
 
   @PostMapping(consumes = { "multipart/form-data" })
   @SecurityRequirement(name = "apiToken")
-  public ResponseEntity<ProdutoModel> criarProduto(@RequestPart("produto") CriarProdutoDTO produto,
+  public ResponseEntity<ProdutoModel> criarProduto(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          content = @Content(encoding = @Encoding(
+              name = "produto", contentType = MediaType.APPLICATION_JSON_VALUE)))
+      @Parameter(description = "Dados do produto em JSON")
+      @RequestPart("produto") CriarProdutoDTO produto,
       @RequestPart("imagens") List<MultipartFile> imagens) {
     try {
       produto.setImagens(imagens);
