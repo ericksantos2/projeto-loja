@@ -2,7 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
 import IconButton from "~/components/ui/IconButton";
 import { currencyFormatter, getDiscountPercentage } from "~/lib/formatters";
-import type { Product } from "~/data/store.mock.json";
+type Product = (typeof import("~/data/store.mock.json"))["products"][number];
 
 interface FeaturedSlideMobileProps {
   product: Product;

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
+import type { Route } from "./+types/products";
 import ProductCard from "~/components/home/ProductCard";
 import { ProductBreadcrumb } from "~/components/products/ProductBreadcrumb";
 import { ProductFilters } from "~/components/products/ProductFilters";
@@ -7,8 +8,24 @@ import { ProductMobileFilters } from "~/components/products/ProductMobileFilters
 import { ProductSearchBar } from "~/components/products/ProductSearchBar";
 import Container from "~/components/ui/Container";
 import storeData from "~/data/store.mock.json";
+import { api } from "~/services/api";
 
 export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
+
+interface ProdutoResumo {
+  id: string;
+  nome: string;
+  slug: string;
+  descricaoBreve: string | null;
+  preco: number;
+  precoOriginal: number | null;
+  rating: number | null;
+  contagemReviews: number | null;
+  categoryId: string | null;
+  estoque: number | null;
+  imagemPrincipal: string | null;
+  quantidadeImagens: number | null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -24,6 +41,36 @@ export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .get<ProdutoResumo[]>("/produtos")
+      .then((data) => {
+        const mappedProducts = data.map((p) => ({
+          id: p.id,
+          name: p.nome,
+          slug: p.slug,
+          shortDescription: p.descricaoBreve,
+          price: p.preco,
+          originalPrice: p.precoOriginal,
+          rating: p.rating,
+          reviewCount: p.contagemReviews,
+          stock: p.estoque ?? 0,
+          coverImage: p.imagemPrincipal ?? "",
+          categoryId: p.categoryId
+        }));
+        setProducts(mappedProducts);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   const categoryFilter = searchParams.get("categoria");
   const availableOnly = searchParams.get("disponivel") === "true";
@@ -43,7 +90,7 @@ export default function Products() {
     setSearchInput("");
   };
 
-  const filteredProducts = storeData.products.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesCategory =
       !categoryFilter ||
       product.categoryId ===
@@ -74,6 +121,9 @@ export default function Products() {
     ? storeData.categories.find((c) => c.slug === categoryFilter)
     : null;
   const hasActiveFilters = categoryFilter || availableOnly || searchInput;
+
+  if (loading) return <Container className="py-14 text-center">Carregando...</Container>;
+  if (error) return <Container className="py-14 text-center text-red-500">Erro: {error}</Container>;
 
   return (
     <main className="bg-slate-50 py-8 sm:py-10 lg:py-14">
