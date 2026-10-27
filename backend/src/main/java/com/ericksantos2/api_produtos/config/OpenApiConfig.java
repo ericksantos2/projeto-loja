@@ -9,6 +9,6 @@ import org.springframework.context.annotation.Configuration;
     name = "apiToken",
     type = SecuritySchemeType.HTTP,
     scheme = "bearer",
-    bearerFormat = "API token")
+    bearerFormat = "JWT")
 public class OpenApiConfig {
 }
