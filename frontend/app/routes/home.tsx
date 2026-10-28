@@ -4,7 +4,7 @@ import FeaturedCarousel from "~/components/home/FeaturedCarousel";
 import NewArrivals from "~/components/home/NewArrivals";
 import PromoBanner from "~/components/home/PromoBanner";
 import WhyScout from "~/components/home/WhyScout";
-import { getCategories } from "~/services/products";
+import { useCategoriesQuery } from "~/services/products";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -16,17 +16,19 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function loader() {
-  return {
-    categories: await getCategories(),
-  };
-}
+export default function Home() {
+  const { data: categories = [], error, isLoading } = useCategoriesQuery();
 
-export default function Home({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <FeaturedCarousel />
-      <CategoryList categories={loaderData.categories} />
+      {error ? (
+        <p className="px-4 py-4 text-center text-red-500">
+          Erro ao carregar categorias: {error.message}
+        </p>
+      ) : (
+        <CategoryList categories={isLoading ? [] : categories} />
+      )}
       <NewArrivals />
       <PromoBanner />
       <WhyScout />

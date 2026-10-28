@@ -1,4 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { api, getAssetUrl } from "~/services/api";
+
+export const queries = {
+  categories: ["categories"] as const,
+  products: ["products"] as const,
+  productsFeatured: (featured: boolean) => ["products", "featured", featured] as const,
+  productDetail: (id: string) => ["products", "detail", id] as const,
+};
 
 export type Product = {
   id: string;
@@ -35,6 +43,18 @@ export type Category = {
   description: string;
   imageUrl: string;
 };
+
+export type CategoryMetadata = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export const CATEGORY_METADATA: CategoryMetadata[] = [
+  { id: "tech", name: "Tecnologia", slug: "tech" },
+  { id: "home", name: "Casa", slug: "home" },
+  { id: "accessories", name: "Acessórios", slug: "accessories" },
+];
 
 export async function getCategories(): Promise<Category[]> {
   const categories =
@@ -139,4 +159,30 @@ export function getCategory(slug: string | null) {
 
 export function getCategoryById(id: string | null) {
   return CATEGORY_METADATA.find((category) => category.id === id);
+}
+
+export function useCategoriesQuery() {
+  return useQuery({
+    queryKey: queries.categories,
+    queryFn: getCategories,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useProductsQuery(featured?: boolean) {
+  return useQuery({
+    queryKey:
+      featured === undefined ? queries.products : queries.productsFeatured(featured),
+    queryFn: () => getProducts(featured),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useProductQuery(id: string) {
+  return useQuery({
+    queryKey: queries.productDetail(id),
+    queryFn: () => getProduct(id),
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 5,
+  });
 }

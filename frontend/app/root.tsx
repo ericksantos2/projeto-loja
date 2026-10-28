@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   isRouteErrorResponse,
   Links,
@@ -6,6 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { useState } from "react";
 
 import type { Route } from "./+types/root";
 import Header from "./components/header";
@@ -52,14 +54,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: 1,
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
+  );
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </QueryClientProvider>
   );
 }
 

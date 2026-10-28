@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router";
 import type { Route } from "./+types/products";
 import ProductCard from "~/components/home/ProductCard";
@@ -7,7 +7,11 @@ import { ProductFilters } from "~/components/products/ProductFilters";
 import { ProductMobileFilters } from "~/components/products/ProductMobileFilters";
 import { ProductSearchBar } from "~/components/products/ProductSearchBar";
 import Container from "~/components/ui/Container";
-import { CATEGORY_METADATA, getCategory, getProducts, type Product } from "~/services/products";
+import {
+  CATEGORY_METADATA,
+  getCategory,
+  useProductsQuery,
+} from "~/services/products";
 
 export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -26,16 +30,7 @@ export default function Products() {
   const [searchInput, setSearchInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getProducts()
-      .then(setProducts)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: products = [], error, isLoading } = useProductsQuery();
 
   const categoryFilter = searchParams.get("categoria");
   const availableOnly = searchParams.get("disponivel") === "true";
@@ -86,8 +81,8 @@ export default function Products() {
     : null;
   const hasActiveFilters = categoryFilter || availableOnly || searchInput;
 
-  if (loading) return <Container className="py-14 text-center">Carregando...</Container>;
-  if (error) return <Container className="py-14 text-center text-red-500">Erro: {error}</Container>;
+  if (isLoading) return <Container className="py-14 text-center">Carregando...</Container>;
+  if (error) return <Container className="py-14 text-center text-red-500">Erro: {error.message}</Container>;
 
   return (
     <main className="bg-slate-50 py-8 sm:py-10 lg:py-14">

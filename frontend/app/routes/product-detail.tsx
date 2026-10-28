@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Route } from "./+types/product-detail";
 import AddToCartButton from "~/components/ui/AddToCartButton";
 import Breadcrumb from "~/components/ui/Breadcrumb";
@@ -11,46 +11,59 @@ import ShippingInfo from "~/components/ui/ShippingInfo";
 import SpecsList from "~/components/ui/SpecsList";
 import StockBadge from "~/components/ui/StockBadge";
 import VariantSelector from "~/components/ui/VariantSelector";
-import { getCategoryById, getProduct, getProducts, type ProductDetail } from "~/services/products";
+import {
+  getCategoryById,
+  useProductQuery,
+  useProductsQuery,
+} from "~/services/products";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Produto | Scout Store" }];
 }
 
 export default function ProductDetail({ params }: Route.ComponentProps) {
-  const [product, setProduct] = useState<ProductDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: products = [], isLoading: isProductsLoading } = useProductsQuery();
+  const summary = useMemo(
+    () => products.find((item) => item.slug === params.slug) ?? null,
+    [params.slug, products],
+  );
+  const productQuery = useProductQuery(summary?.id ?? "");
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedVariant, setSelectedVariant] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    getProducts()
-      .then((products) => {
-        const summary = products.find((item) => item.slug === params.slug);
-        if (!summary) throw new Error("Produto não encontrado.");
-        return getProduct(summary.id);
-      })
-      .then((details) => {
-        if (cancelled) return;
-        setProduct(details);
-        setSelectedImage(details.images[0] ?? details.coverImage ?? "");
-        setSelectedVariant(details.variants.find((variant) => variant.available)?.id ?? details.variants[0]?.id ?? "");
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [params.slug]);
+  const product = productQuery.data ?? null;
 
-  if (loading) return <Container className="py-14 text-center">Carregando produto...</Container>;
-  if (error || !product) return <Container className="py-14 text-center text-red-500">Erro: {error ?? "Produto não encontrado."}</Container>;
+  useEffect(() => {
+    if (!product) return;
+    setSelectedImage((current) => current || product.images[0] || product.coverImage || "");
+    setSelectedVariant(
+      (current) =>
+        current ||
+        product.variants.find((variant) => variant.available)?.id ||
+        product.variants[0]?.id ||
+        "",
+    );
+  }, [product]);
+
+  if (summary === null && !isProductsLoading) {
+    return (
+      <Container className="py-14 text-center text-red-500">
+        Produto não encontrado.
+      </Container>
+    );
+  }
+
+  if (productQuery.isLoading || isProductsLoading) {
+    return <Container className="py-14 text-center">Carregando produto...</Container>;
+  }
+
+  if (productQuery.error || !product) {
+    return (
+      <Container className="py-14 text-center text-red-500">
+        Erro: {productQuery.error?.message ?? "Produto não encontrado."}
+      </Container>
+    );
+  }
 
   const category = getCategoryById(product.categoryId);
   const shipping = { estimatedDelivery: "3 a 6 dias úteis", returns: "Devolução em até 30 dias" };
