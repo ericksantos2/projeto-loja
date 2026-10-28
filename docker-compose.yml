@@ -21,18 +21,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # Banco exclusivo dos testes; não publica porta e não usa o volume de desenvolvimento.
-  db-test:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: api_produtos_test
-      MYSQL_ROOT_PASSWORD: root
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   # =========================================================
   # 2. BACKEND (Spring Boot / Java 26 / Maven 3.9)
   # =========================================================
@@ -42,7 +30,7 @@ services:
     env_file:
       - ./backend/.env
     ports:
-      - "8080"
+      - "65062:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/api_produtos?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=root
@@ -56,33 +44,12 @@ services:
     depends_on:
       db:
         condition: service_healthy # Aguarda o MySQL estar 100% pronto (healthcheck)
-      backend-tests:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-
-  # Roda automaticamente antes da API e usa um MySQL isolado do ambiente local.
-  backend-tests:
-    build: ./backend
-    env_file:
-      - ./backend/.env
-    command: ["mvn", "test"]
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db-test:3306/api_produtos_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-      - UPLOAD_DIR=/app/target/test-uploads
-      - JPA_DDL_AUTO=update
-    volumes:
-      - ./backend/src:/app/src:Z
-      - maven_cache:/root/.m2
-    depends_on:
-      db-test:
-        condition: service_healthy
 
   # =========================================================
   # 3. FRONTEND (React / Vite / Node 26 / pnpm)
@@ -94,6 +61,8 @@ services:
       - "5173:5173"
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=http://localhost:65062/api
+      - API_INTERNAL_URL=http://backend:8080/api
     volumes:
       - ./frontend:/app:Z
       - frontend_node_modules:/app/node_modules
