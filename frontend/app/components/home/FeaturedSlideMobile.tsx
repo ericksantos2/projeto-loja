@@ -2,7 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
 import IconButton from "~/components/ui/IconButton";
 import { currencyFormatter, getDiscountPercentage } from "~/lib/formatters";
-type Product = (typeof import("~/data/store.mock.json"))["products"][number];
+import type { Product } from "~/services/products";
 
 interface FeaturedSlideMobileProps {
   product: Product;
@@ -70,7 +70,7 @@ export function FeaturedSlideMobile({ product }: FeaturedSlideMobileProps) {
         className="relative order-1 block h-62 overflow-hidden md:hidden"
       >
         <img
-          src={product.coverImage}
+          src={product.coverImage ?? undefined}
           alt={product.name}
           className="h-full w-full object-cover"
         />

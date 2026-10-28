@@ -1,8 +1,9 @@
 import { SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef } from "react";
-import storeData from "~/data/store.mock.json";
+import type { CategoryMetadata } from "~/services/products";
 
 interface ProductFiltersProps {
+  categories: CategoryMetadata[];
   showFilters: boolean;
   categoryFilter: string | null;
   availableOnly: boolean;
@@ -13,6 +14,7 @@ interface ProductFiltersProps {
 }
 
 export function ProductFilters({
+  categories,
   showFilters,
   categoryFilter,
   availableOnly,
@@ -77,7 +79,7 @@ export function ProductFilters({
               className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-950 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
             >
               <option value="">Todas as categorias</option>
-              {storeData.categories.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat.id} value={cat.slug}>
                   {cat.name}
                 </option>

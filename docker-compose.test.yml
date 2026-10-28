@@ -1,0 +1,34 @@
+services:
+  db-test:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: api_produtos_test
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./backend/database/catalog.sql:/docker-entrypoint-initdb.d/catalog.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend-tests:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    command: ["mvn", "test"]
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-test:3306/api_produtos_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - UPLOAD_DIR=/app/target/test-uploads
+      - JPA_DDL_AUTO=update
+    volumes:
+      - ./backend/src:/app/src:Z
+      - maven_cache:/root/.m2
+    depends_on:
+      db-test:
+        condition: service_healthy
+
+volumes:
+  maven_cache:

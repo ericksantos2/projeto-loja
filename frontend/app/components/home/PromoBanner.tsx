@@ -1,9 +1,9 @@
 import { ArrowRight, Truck } from "lucide-react";
 import Container from "~/components/ui/Container";
-import storeData from "~/data/store.mock.json";
 import { currencyFormatter } from "~/lib/formatters";
 
-const minimumOrder = currencyFormatter.format(storeData.store.freeShippingMinimum);
+const FREE_SHIPPING_MINIMUM = 20;
+const minimumOrder = currencyFormatter.format(FREE_SHIPPING_MINIMUM);
 
 export default function PromoBanner() {
   return (

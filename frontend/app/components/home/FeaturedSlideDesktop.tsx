@@ -1,10 +1,8 @@
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
-import storeData from "~/data/store.mock.json";
 import IconButton from "~/components/ui/IconButton";
 import { currencyFormatter, getDiscountPercentage } from "~/lib/formatters";
-
-type Product = (typeof storeData.products)[number];
+import type { Product } from "~/services/products";
 
 interface FeaturedSlideDesktopProps {
   product: Product;
@@ -18,7 +16,7 @@ export function FeaturedSlideDesktop({ product }: FeaturedSlideDesktopProps) {
       {/* Ambient background image */}
       <div className="hidden md:absolute md:inset-0 md:block">
         <img
-          src={product.coverImage}
+          src={product.coverImage ?? undefined}
           alt=""
           className="h-full w-full object-cover scale-110 opacity-70 saturate-110"
         />
@@ -85,7 +83,7 @@ export function FeaturedSlideDesktop({ product }: FeaturedSlideDesktopProps) {
             className="block rounded-2xl border border-white/10 bg-slate-900/75 p-4 shadow-2xl transition hover:shadow-amber-500/20 lg:p-5"
           >
             <img
-              src={product.coverImage}
+              src={product.coverImage ?? undefined}
               alt={product.name}
               className="h-80 w-80 rounded-xl object-cover lg:h-100 lg:w-100"
             />

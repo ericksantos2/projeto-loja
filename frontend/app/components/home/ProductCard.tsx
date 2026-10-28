@@ -1,10 +1,8 @@
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
-import storeData from "~/data/store.mock.json";
 import IconButton from "~/components/ui/IconButton";
 import { currencyFormatter, getDiscountPercentage } from "~/lib/formatters";
-
-type Product = (typeof storeData.products)[number];
+import type { Product } from "~/services/products";
 
 export default function ProductCard({ product }: { product: Product }) {
   const discount = getDiscountPercentage(product.price, product.originalPrice);
@@ -18,7 +16,7 @@ export default function ProductCard({ product }: { product: Product }) {
           className="block h-full w-full"
         >
           <img
-            src={product.coverImage}
+            src={product.coverImage ?? undefined}
             alt={product.name}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />

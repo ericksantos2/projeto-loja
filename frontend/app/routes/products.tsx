@@ -7,25 +7,9 @@ import { ProductFilters } from "~/components/products/ProductFilters";
 import { ProductMobileFilters } from "~/components/products/ProductMobileFilters";
 import { ProductSearchBar } from "~/components/products/ProductSearchBar";
 import Container from "~/components/ui/Container";
-import storeData from "~/data/store.mock.json";
-import { api } from "~/services/api";
+import { CATEGORY_METADATA, getCategory, getProducts, type Product } from "~/services/products";
 
 export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
-
-interface ProdutoResumo {
-  id: string;
-  nome: string;
-  slug: string;
-  descricaoBreve: string | null;
-  preco: number;
-  precoOriginal: number | null;
-  rating: number | null;
-  contagemReviews: number | null;
-  categoryId: string | null;
-  estoque: number | null;
-  imagemPrincipal: string | null;
-  quantidadeImagens: number | null;
-}
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -42,34 +26,15 @@ export default function Products() {
   const [searchInput, setSearchInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .get<ProdutoResumo[]>("/produtos")
-      .then((data) => {
-        const mappedProducts = data.map((p) => ({
-          id: p.id,
-          name: p.nome,
-          slug: p.slug,
-          shortDescription: p.descricaoBreve,
-          price: p.preco,
-          originalPrice: p.precoOriginal,
-          rating: p.rating,
-          reviewCount: p.contagemReviews,
-          stock: p.estoque ?? 0,
-          coverImage: p.imagemPrincipal ?? "",
-          categoryId: p.categoryId
-        }));
-        setProducts(mappedProducts);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    getProducts()
+      .then(setProducts)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   const categoryFilter = searchParams.get("categoria");
@@ -93,8 +58,7 @@ export default function Products() {
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
       !categoryFilter ||
-      product.categoryId ===
-        storeData.categories.find((c) => c.slug === categoryFilter)?.id;
+      product.categoryId === getCategory(categoryFilter)?.id;
     const matchesAvailable = !availableOnly || product.stock > 0;
     const matchesSearch =
       !searchInput ||
@@ -118,7 +82,7 @@ export default function Products() {
   });
 
   const currentCategory = categoryFilter
-    ? storeData.categories.find((c) => c.slug === categoryFilter)
+    ? getCategory(categoryFilter)
     : null;
   const hasActiveFilters = categoryFilter || availableOnly || searchInput;
 
@@ -155,6 +119,7 @@ export default function Products() {
               availableOnly={availableOnly}
               hasActiveFilters={!!hasActiveFilters}
               onToggleFilters={() => setShowFilters(!showFilters)}
+              categories={CATEGORY_METADATA}
               onUpdateFilters={updateFilters}
               onClearFilters={clearFilters}
             />
@@ -165,6 +130,7 @@ export default function Products() {
           showFilters={showFilters}
           categoryFilter={categoryFilter}
           availableOnly={availableOnly}
+          categories={CATEGORY_METADATA}
           onUpdateFilters={updateFilters}
         />
 

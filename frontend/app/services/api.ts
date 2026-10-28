@@ -1,4 +1,16 @@
-const BASE_URL = 'http://localhost:8080/api';
+const PUBLIC_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:65062/api';
+const INTERNAL_API_URL = typeof process !== 'undefined' ? process.env.API_INTERNAL_URL : undefined;
+
+function getBaseUrl() {
+  return (typeof window === 'undefined' ? (INTERNAL_API_URL || PUBLIC_API_URL) : PUBLIC_API_URL);
+}
+
+export function getAssetUrl(path: string | null) {
+  if (!path) return null;
+  if (/^https?:\/\//.test(path)) return path;
+  const apiUrl = getBaseUrl();
+  return `${apiUrl.replace(/\/api\/?$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
+}
 
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
@@ -22,7 +34,7 @@ async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Pro
     headers,
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, config);
+  const response = await fetch(`${getBaseUrl()}${endpoint}`, config);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
