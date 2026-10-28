@@ -17,4 +17,5 @@ public class AtualizarProdutoDTO {
   private Integer contagemReviews;
   private Integer estoque;
   private String imagemPrincipal;
+  private Boolean featured;
 }

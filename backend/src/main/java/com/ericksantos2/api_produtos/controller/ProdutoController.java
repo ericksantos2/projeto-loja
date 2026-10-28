@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,8 +62,10 @@ public class ProdutoController {
   }
 
   @GetMapping
-  public ResponseEntity<List<ProdutoResumoDTO>> listarProdutos() {
-    return ResponseEntity.ok(service.listarResumo());
+  public ResponseEntity<List<ProdutoResumoDTO>> listarProdutos(
+      @RequestParam(value = "categoria", required = false) String categoria,
+      @RequestParam(value = "featured", required = false) Boolean featured) {
+    return ResponseEntity.ok(service.listarResumo(categoria, featured));
   }
 
   @PostMapping(path = "/{produtoId}/imagens", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

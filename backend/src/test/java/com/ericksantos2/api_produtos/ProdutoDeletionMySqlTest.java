@@ -46,6 +46,14 @@ class ProdutoDeletionMySqlTest {
   @Test
   @Transactional
   void deveExcluirProdutoERegistrosRelacionadosNoMySql() throws IOException {
+    // O db-test é inicializado com o catalog.sql, então as tabelas já contêm
+    // os produtos de exemplo. Medimos o efeito do teste pelo delta, não pelo total.
+    int produtosAntes = contar("produto_model");
+    int imagensAntes = contar("imagem_model");
+    int especificacoesAntes = contar("especificacao_model");
+    int variantesAntes = contar("variante_model");
+    int highlightsAntes = contar("produto_model_highlights");
+
     Path imagePath = uploadDirectory.resolve("produto-teste.jpg");
     Files.writeString(imagePath, "imagem de teste");
 
@@ -76,19 +84,19 @@ class ProdutoDeletionMySqlTest {
     ProdutoModel salvo = repository.saveAndFlush(produto);
     UUID produtoId = salvo.getId();
 
-    assertThat(contar("produto_model")).isEqualTo(1);
-    assertThat(contar("imagem_model")).isEqualTo(1);
-    assertThat(contar("especificacao_model")).isEqualTo(1);
-    assertThat(contar("variante_model")).isEqualTo(1);
-    assertThat(contar("produto_model_highlights")).isEqualTo(1);
+    assertThat(contar("produto_model")).isEqualTo(produtosAntes + 1);
+    assertThat(contar("imagem_model")).isEqualTo(imagensAntes + 1);
+    assertThat(contar("especificacao_model")).isEqualTo(especificacoesAntes + 1);
+    assertThat(contar("variante_model")).isEqualTo(variantesAntes + 1);
+    assertThat(contar("produto_model_highlights")).isEqualTo(highlightsAntes + 1);
 
     assertThat(service.deletar(produtoId)).isTrue();
 
-    assertThat(contar("produto_model")).isZero();
-    assertThat(contar("imagem_model")).isZero();
-    assertThat(contar("especificacao_model")).isZero();
-    assertThat(contar("variante_model")).isZero();
-    assertThat(contar("produto_model_highlights")).isZero();
+    assertThat(contar("produto_model")).isEqualTo(produtosAntes);
+    assertThat(contar("imagem_model")).isEqualTo(imagensAntes);
+    assertThat(contar("especificacao_model")).isEqualTo(especificacoesAntes);
+    assertThat(contar("variante_model")).isEqualTo(variantesAntes);
+    assertThat(contar("produto_model_highlights")).isEqualTo(highlightsAntes);
     assertThat(Files.exists(imagePath)).isFalse();
   }
 

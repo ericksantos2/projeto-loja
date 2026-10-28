@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,7 +25,11 @@ public class ProdutoModel {
   private UUID id;
 
   private String nome;
+
+  @Lob
+  @Column(columnDefinition = "TEXT")
   private String descricao;
+
   private String slug;
   private String categoryId;
   private String descricaoBreve;
@@ -33,6 +39,8 @@ public class ProdutoModel {
   private Integer contagemReviews;
   private Integer estoque;
   private String imagemPrincipal;
+
+  private Boolean featured = false;
 
   @ElementCollection
   private List<String> highlights;

@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.util.Map;
@@ -19,9 +20,20 @@ public class GlobalExceptionHandler {
     return erro(HttpStatus.UNAUTHORIZED, ex.getMessage());
   }
 
+  @ExceptionHandler(CategoriaEmUsoException.class)
+  public ResponseEntity<Map<String, Object>> handleCategoriaEmUso(CategoriaEmUsoException ex) {
+    return erro(HttpStatus.CONFLICT, ex.getMessage());
+  }
+
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
     return erro(HttpStatus.BAD_REQUEST, ex.getMessage());
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<Map<String, Object>> handleMethodArgumentTypeMismatch(
+      MethodArgumentTypeMismatchException ex) {
+    return erro(HttpStatus.BAD_REQUEST, "Parâmetro inválido: " + ex.getName() + ".");
   }
 
   @ExceptionHandler(HttpMessageNotReadableException.class)

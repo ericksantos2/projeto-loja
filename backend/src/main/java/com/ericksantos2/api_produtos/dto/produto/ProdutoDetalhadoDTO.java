@@ -15,6 +15,7 @@ public record ProdutoDetalhadoDTO(
     Integer contagemReviews,
     Integer estoque,
     String imagemPrincipal,
+    Boolean featured,
     List<String> highlights,
     List<ImagemResponseDTO> imagens,
     List<EspecificacaoResponseDTO> especificacoes,

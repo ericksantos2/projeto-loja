@@ -46,8 +46,8 @@ public class ProdutoService {
   }
 
   @Transactional(readOnly = true)
-  public List<ProdutoResumoDTO> listarResumo() {
-    return repository.listarResumo();
+  public List<ProdutoResumoDTO> listarResumo(String categoria, Boolean featured) {
+    return repository.listarResumo(categoria, featured);
   }
 
   @Transactional(readOnly = true)
@@ -72,6 +72,7 @@ public class ProdutoService {
     produto.setRating(produtoDTO.getRating());
     produto.setContagemReviews(produtoDTO.getContagemReviews());
     produto.setEstoque(produtoDTO.getEstoque());
+    produto.setFeatured(produtoDTO.getFeatured());
     produto.setHighlights(produtoDTO.getHighlights());
 
     if (produtoDTO.getImagens() != null && !produtoDTO.getImagens().isEmpty()) {

@@ -28,6 +28,7 @@ public class CriarProdutoDTO {
   private List<MultipartFile> imagens;
   private List<CriarVarianteDTO> variantes;
   private List<CriarEspecificacaoDTO> especificacoes;
+  private Boolean featured = false;
 
   @JsonAnySetter
   public void rejeitarIdInformado(String nome, Object valor) {

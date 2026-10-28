@@ -11,25 +11,19 @@ import com.ericksantos2.api_produtos.model.ProdutoModel;
 
 public interface ProdutoRepository extends JpaRepository<ProdutoModel, UUID> {
 
+  boolean existsByCategoryId(String categoryId);
+
   @Query("""
-	  SELECT new com.ericksantos2.api_produtos.dto.produto.ProdutoResumoDTO(
-		  p.id,
-		  p.nome,
-		  p.slug,
-		  p.categoryId,
-		  p.descricaoBreve,
-		  p.preco,
-		  p.precoOriginal,
-		  p.rating,
-		  p.contagemReviews,
-		  p.estoque,
-		  p.imagemPrincipal,
-		  COUNT(i))
-	  FROM ProdutoModel p
-	  LEFT JOIN p.imagens i
-	  GROUP BY p.id, p.nome, p.slug, p.categoryId, p.descricaoBreve, p.preco,
-		  p.precoOriginal, p.rating, p.contagemReviews, p.estoque,
-		  p.imagemPrincipal
-	  """)
-  List<ProdutoResumoDTO> listarResumo();
+      SELECT new com.ericksantos2.api_produtos.dto.produto.ProdutoResumoDTO(
+          p.id, p.nome, p.slug, p.categoryId, p.descricaoBreve, p.preco,
+          p.precoOriginal, p.rating, p.contagemReviews, p.estoque,
+          p.imagemPrincipal, p.featured, COUNT(i))
+      FROM ProdutoModel p
+      LEFT JOIN p.imagens i
+      WHERE (:categoria IS NULL OR p.categoryId = :categoria)
+      AND (:featured IS NULL OR p.featured = :featured)
+      GROUP BY p.id, p.nome, p.slug, p.categoryId, p.descricaoBreve, p.preco,
+          p.precoOriginal, p.rating, p.contagemReviews, p.estoque, p.imagemPrincipal, p.featured
+      """)
+  List<ProdutoResumoDTO> listarResumo(String categoria, Boolean featured);
 }
