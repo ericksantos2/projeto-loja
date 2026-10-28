@@ -2,7 +2,7 @@
 
 Este é um projeto de uma aplicação de loja online, composta por um backend robusto e um frontend moderno.
 
-## Destaques do Projeto para Recrutadores
+## Destaques do Projeto
 
 Este projeto foi desenvolvido com foco em boas práticas de engenharia de software e segurança, demonstrando competência nas seguintes áreas:
 
