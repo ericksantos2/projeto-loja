@@ -4,6 +4,8 @@ services:
     environment:
       MYSQL_DATABASE: api_produtos_test
       MYSQL_ROOT_PASSWORD: root
+    networks:
+      - test-network
     volumes:
       - ./backend/database/catalog.sql:/docker-entrypoint-initdb.d/catalog.sql:ro
     healthcheck:
@@ -17,6 +19,8 @@ services:
     env_file:
       - ./backend/.env
     command: ["mvn", "test"]
+    networks:
+      - test-network
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db-test:3306/api_produtos_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=root
@@ -32,3 +36,8 @@ services:
 
 volumes:
   maven_cache:
+
+networks:
+  test-network:
+    name: projeto-loja-test-network
+    driver: bridge
