@@ -139,6 +139,13 @@ public class AuthService {
     refreshTokens.revogarAtivosDoUsuario(usuario.getId(), Instant.now());
   }
 
+  @Transactional(readOnly = true)
+  public Cargo buscarCargo(String username) {
+    return usuarios.findByUsername(username)
+        .orElseThrow(() -> new CredencialInvalidaException("Usuário não encontrado."))
+        .getCargo();
+  }
+
   @Transactional
   public void alterarSenha(String username, AlterarSenhaDTO dados) {
     if (dados == null || dados.senhaAtual() == null || dados.senhaAtual().isEmpty()

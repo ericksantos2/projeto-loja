@@ -2,6 +2,7 @@ package com.ericksantos2.api_produtos.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,6 +56,12 @@ public class AuthController {
     return ResponseEntity.noContent().build();
   }
 
+  @GetMapping("/me")
+  public ResponseEntity<UsuarioAtualDTO> me(@AuthenticationPrincipal Jwt jwt) {
+    Cargo cargo = authService.buscarCargo(jwt.getSubject());
+    return ResponseEntity.ok(new UsuarioAtualDTO(jwt.getSubject(), cargo));
+  }
+
   @PostMapping("/change-role")
   public ResponseEntity<Void> changeRole(Authentication authentication,
       @RequestBody ChangeRoleRequest dados) {
@@ -71,4 +78,6 @@ public class AuthController {
   }
 
   public record ChangeRoleRequest(String username, Cargo cargo) {}
+
+  public record UsuarioAtualDTO(String username, Cargo cargo) {}
 }
