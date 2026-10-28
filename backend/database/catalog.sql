@@ -60,9 +60,9 @@ CREATE TABLE IF NOT EXISTS categoria_model (
 );
 
 INSERT INTO categoria_model (id, nome, slug, descricao, foto_url) VALUES
-  ('tech', 'Tecnologia', 'tech', 'Produtos de tecnologia', 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=800&q=80'),
-  ('home', 'Casa', 'home', 'Produtos para casa', 'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=800&q=80'),
-  ('accessories', 'Acessórios', 'accessories', 'Acessórios para o dia a dia', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80');
+  ('tech', 'Tecnologia', 'tech', 'Produtos de tecnologia', '/api/imagens/categoria-tech.jpg'),
+  ('home', 'Casa', 'home', 'Produtos para casa', '/api/imagens/categoria-home.jpg'),
+  ('accessories', 'Acessórios', 'accessories', 'Acessórios para o dia a dia', '/api/imagens/categoria-accessories.jpg');
 
 INSERT INTO produto_model (
   id,
