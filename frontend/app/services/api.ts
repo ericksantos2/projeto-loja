@@ -2,12 +2,13 @@ const PUBLIC_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:65062/a
 const INTERNAL_API_URL = typeof process !== 'undefined' ? process.env.API_INTERNAL_URL : undefined;
 
 function getBaseUrl() {
-  return (typeof window === 'undefined' ? (INTERNAL_API_URL || PUBLIC_API_URL) : PUBLIC_API_URL);
+  return typeof window === 'undefined' ? INTERNAL_API_URL || PUBLIC_API_URL : PUBLIC_API_URL;
 }
 
 export function getAssetUrl(path: string | null) {
   if (!path) return null;
   if (/^https?:\/\//.test(path)) return path;
+
   const apiUrl = getBaseUrl();
   return `${apiUrl.replace(/\/api\/?$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
 }
@@ -18,12 +19,14 @@ interface RequestOptions extends RequestInit {
 
 async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { requiresAuth = false, ...customConfig } = options;
-
   const headers = new Headers(customConfig.headers);
-  headers.set('Content-Type', 'application/json');
+
+  if (!(customConfig.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   if (requiresAuth) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('scout_access_token');
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }
@@ -41,6 +44,10 @@ async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Pro
     throw new Error(errorData.message || 'Ocorreu um erro na requisição.');
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return response.json() as Promise<T>;
 }
 
@@ -52,14 +59,14 @@ export const api = {
     apiClient<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     }),
 
   put: <T>(endpoint: string, data: any, options?: RequestOptions) =>
     apiClient<T>(endpoint, {
       ...options,
       method: 'PUT',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     }),
 
   delete: <T>(endpoint: string, options?: RequestOptions) =>
