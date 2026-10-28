@@ -2,7 +2,9 @@
 
 Este é um projeto de uma aplicação de loja online, composta por um backend robusto e um frontend moderno.
 
-## Destaques do Projeto para Recrutadores
+> **Nota:** O projeto utiliza infraestrutura Docker otimizada para desenvolvimento e testes, separando os ambientes para maior eficiência e isolamento.
+
+## Destaques do Projeto
 
 Este projeto foi desenvolvido com foco em boas práticas de engenharia de software e segurança, demonstrando competência nas seguintes áreas:
 
@@ -40,7 +42,7 @@ Este projeto foi desenvolvido com foco em boas práticas de engenharia de softwa
 - **CORS**: Configuração de segurança de origem.
 - **Proteção**: Rate Limiting de requisições.
 - **Documentação**: OpenAPI/Swagger integrado.
-- **Banco de dados**: O catálogo inicial é carregado pelo MySQL a partir de `backend/database/catalog.sql` na primeira criação do volume.
+- **Banco de dados**: Inclui scripts SQL (`backend/database/catalog.sql`) para inicialização do catálogo em ambiente de desenvolvimento. *Nota: Esta pasta destina-se exclusivamente a testes e ao bootstrapping inicial do ambiente, não sendo necessária em contextos de produção.*
 
 ## Como Executar o Projeto
 
@@ -50,10 +52,24 @@ Este projeto foi desenvolvido com foco em boas práticas de engenharia de softwa
 ### Passos
 1. Clone o repositório.
 2. Na raiz do projeto, execute o comando:
+   ```bash
+   docker compose up --build
    ```
-   docker-compose up --build
-   ```
-3. O frontend estará disponível em `http://localhost:5173`. Para acessar o backend, verifique a porta mapeada pelo Docker (ex: `docker ps`), pois o projeto é configurado para expor o serviço em uma porta dinâmica para evitar conflitos.
+3. O frontend estará disponível em `http://localhost:5173` e a API em `http://localhost:65062`.
+
+### Executando Testes
+Para rodar os testes de integração com um banco de dados isolado (garantindo um ambiente limpo e profissional), utilize o comando correspondente ao seu sistema operacional:
+
+**No Linux / macOS (Bash):**
+```bash
+docker compose -f docker-compose.test.yml run --rm backend-tests mvn test && docker compose -f docker-compose.test.yml down
+```
+
+**No Windows (PowerShell):**
+```powershell
+docker compose -f .\docker-compose.test.yml run --rm backend-tests mvn test; docker compose -f .\docker-compose.test.yml down
+```
+*Estes comandos executam os testes em um container dedicado e removem automaticamente a infraestrutura de testes após a conclusão.*
 
 ### Configuração do Ambiente
 
