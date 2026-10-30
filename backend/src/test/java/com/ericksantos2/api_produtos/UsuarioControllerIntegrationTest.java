@@ -379,6 +379,28 @@ class UsuarioControllerIntegrationTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"senha\":\"" + ROOT_PASSWORD + "\"}"))
         .andExpect(status().isBadRequest());
+
+    // Se houver mais de um admin ativo, o outro admin pode excluir a própria conta
+    criar("outro-admin", "senha-outro-admin", Cargo.ADMIN, true);
+    mockMvc.perform(post("/api/auth/delete-account")
+        .header("Authorization", bearer("outro-admin", "senha-outro-admin"))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"senha\":\"senha-outro-admin\"}"))
+        .andExpect(status().isNoContent());
+
+    assertThat(usuarios.findByUsername("outro-admin")).isEmpty();
+
+    // Se só restar um admin ativo não-raiz e ele tentar se excluir, deve falhar
+    criar("unico-admin", "senha-unico-admin", Cargo.ADMIN, true);
+    // Desativando ROOT e ADMIN para deixar apenas unico-admin ativo
+    usuarios.findByUsername(ROOT).ifPresent(u -> { u.setAtivo(false); usuarios.save(u); });
+    usuarios.findByUsername(ADMIN).ifPresent(u -> { u.setAtivo(false); usuarios.save(u); });
+
+    mockMvc.perform(post("/api/auth/delete-account")
+        .header("Authorization", bearer("unico-admin", "senha-unico-admin"))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"senha\":\"senha-unico-admin\"}"))
+        .andExpect(status().isBadRequest());
   }
 
   private void criar(String username, String senha, Cargo cargo, boolean ativo) {
