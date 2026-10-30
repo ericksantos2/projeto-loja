@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS produto_model (
   id BINARY(16) NOT NULL,
   nome VARCHAR(255),
   descricao TEXT,
-  slug VARCHAR(255),
   category_id VARCHAR(255),
   descricao_breve VARCHAR(255),
   preco DOUBLE,
@@ -14,11 +13,13 @@ CREATE TABLE IF NOT EXISTS produto_model (
   estoque INT,
   imagem_principal VARCHAR(255),
   featured BOOLEAN DEFAULT FALSE,
+  posicao_destaque INT,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS produto_model_highlights (
   produto_model_id BINARY(16) NOT NULL,
+  posicao INT NOT NULL,
   highlights VARCHAR(255),
   CONSTRAINT fk_highlights_produto FOREIGN KEY (produto_model_id) REFERENCES produto_model(id)
 );
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS produto_model_highlights (
 CREATE TABLE IF NOT EXISTS imagem_model (
   imagem_id BINARY(16) NOT NULL,
   imagem_url VARCHAR(255),
+  posicao INT,
   produto_id BINARY(16),
   PRIMARY KEY (imagem_id),
   CONSTRAINT fk_imagem_produto FOREIGN KEY (produto_id) REFERENCES produto_model(id)
@@ -36,6 +38,7 @@ CREATE TABLE IF NOT EXISTS variante_model (
   label VARCHAR(255),
   value VARCHAR(255),
   available BOOLEAN,
+  posicao INT,
   produto_id BINARY(16),
   PRIMARY KEY (id),
   CONSTRAINT fk_variante_produto FOREIGN KEY (produto_id) REFERENCES produto_model(id)
@@ -45,6 +48,7 @@ CREATE TABLE IF NOT EXISTS especificacao_model (
   id CHAR(36) NOT NULL,
   label VARCHAR(255),
   value VARCHAR(255),
+  posicao INT,
   produto_id BINARY(16),
   PRIMARY KEY (id),
   CONSTRAINT fk_especificacao_produto FOREIGN KEY (produto_id) REFERENCES produto_model(id)
@@ -53,22 +57,61 @@ CREATE TABLE IF NOT EXISTS especificacao_model (
 CREATE TABLE IF NOT EXISTS categoria_model (
   id VARCHAR(255) NOT NULL,
   nome VARCHAR(255) NOT NULL,
-  slug VARCHAR(255) NOT NULL UNIQUE,
   descricao TEXT,
   foto_url VARCHAR(255),
+  posicao INT,
   PRIMARY KEY (id)
 );
 
-INSERT INTO categoria_model (id, nome, slug, descricao, foto_url) VALUES
-  ('tech', 'Tecnologia', 'tech', 'Produtos de tecnologia', '/api/imagens/categoria-tech.jpg'),
-  ('home', 'Casa', 'home', 'Produtos para casa', '/api/imagens/categoria-home.jpg'),
-  ('accessories', 'Acessórios', 'accessories', 'Acessórios para o dia a dia', '/api/imagens/categoria-accessories.jpg');
+CREATE TABLE IF NOT EXISTS usuarios (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  username VARCHAR(100) NOT NULL,
+  senha VARCHAR(100) NOT NULL,
+  cargo VARCHAR(20) NOT NULL,
+  ativo BIT(1) NOT NULL DEFAULT b'1',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_usuarios_username (username)
+);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  token_hash VARCHAR(64) NOT NULL,
+  family_id VARCHAR(36) NOT NULL,
+  usuario_id BIGINT NOT NULL,
+  expires_at DATETIME(6) NOT NULL,
+  revoked_at DATETIME(6) DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_refresh_tokens_hash (token_hash),
+  CONSTRAINT fk_refresh_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
+);
+
+CREATE TABLE IF NOT EXISTS carrinhos (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  usuario_id BIGINT NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_carrinhos_usuario (usuario_id),
+  CONSTRAINT fk_carrinho_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
+);
+
+CREATE TABLE IF NOT EXISTS itens_carrinho (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  carrinho_id BIGINT NOT NULL,
+  produto_id BINARY(16) NOT NULL,
+  quantidade INT NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_item_carrinho_produto (carrinho_id, produto_id),
+  CONSTRAINT fk_item_carrinho FOREIGN KEY (carrinho_id) REFERENCES carrinhos (id)
+);
+
+INSERT INTO categoria_model (id, nome, descricao, foto_url, posicao) VALUES
+  ('tech', 'Tecnologia', 'Produtos de tecnologia', '/api/imagens/categoria-tech.jpg', 0),
+  ('home', 'Casa', 'Produtos para casa', '/api/imagens/categoria-home.jpg', 1),
+  ('accessories', 'Acessórios', 'Acessórios para o dia a dia', '/api/imagens/categoria-accessories.jpg', 2);
 
 INSERT INTO produto_model (
   id,
   nome,
   descricao,
-  slug,
   category_id,
   descricao_breve,
   preco,
@@ -77,13 +120,13 @@ INSERT INTO produto_model (
   contagem_reviews,
   estoque,
   imagem_principal,
-  featured
+  featured,
+  posicao_destaque
 ) VALUES
   (
     UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01'),
     'Fones Wave Pro',
     'O Wave Pro foi feito para quem quer se concentrar no que importa. O cancelamento ativo de ruído reduz distrações, enquanto os drivers de alta definição entregam graves equilibrados e vozes nítidas. Com conexão Bluetooth estável e controles intuitivos, ele acompanha sua rotina no trabalho, nos estudos e no caminho para casa.',
-    'fones-wave-pro',
     'tech',
     'Fones sem fio com cancelamento de ruído e até 30 horas de bateria.',
     349.90,
@@ -92,13 +135,13 @@ INSERT INTO produto_model (
     124,
     18,
     '/api/imagens/fones-wave-pro-cover.jpg',
-    TRUE
+    TRUE,
+    0
   ),
   (
     UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02'),
     'Luminária Orbit',
     'A Luminária Orbit combina uma base compacta com luz LED regulável para iluminar sua mesa com conforto. Ajuste a intensidade e o ângulo conforme a tarefa, criando um ambiente mais agradável para leitura, trabalho ou estudo.',
-    'luminaria-orbit',
     'home',
     'Luz LED ajustável para deixar sua mesa mais confortável e organizada.',
     189.90,
@@ -107,13 +150,13 @@ INSERT INTO produto_model (
     67,
     9,
     '/api/imagens/luminaria-orbit-cover.jpg',
-    TRUE
+    TRUE,
+    1
   ),
   (
     UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03'),
     'Mochila Urban',
     'A Mochila Urban oferece espaço organizado e construção resistente para acompanhar a rotina. O compartimento interno acolchoado protege seus itens e os bolsos de acesso rápido mantêm o essencial sempre por perto.',
-    'mochila-urban',
     'accessories',
     'Mochila resistente para levar o essencial durante a rotina.',
     259.90,
@@ -122,13 +165,13 @@ INSERT INTO produto_model (
     89,
     0,
     '/api/imagens/mochila-urban-cover.jpg',
-    FALSE
+    FALSE,
+    NULL
   ),
   (
     UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04'),
     'Garrafa Terra',
     'A Garrafa Terra mantém suas bebidas na temperatura ideal e foi pensada para acompanhar você em qualquer lugar. Seu corpo em aço inoxidável é resistente, não transfere sabores e cabe com facilidade na mochila.',
-    'garrafa-terra',
     'accessories',
     'Garrafa térmica de aço inoxidável, com capacidade de 500 ml.',
     99.90,
@@ -137,22 +180,23 @@ INSERT INTO produto_model (
     42,
     31,
     '/api/imagens/garrafa-terra-cover.jpg',
-    FALSE
+    FALSE,
+    NULL
   );
 
-INSERT INTO produto_model_highlights (produto_model_id, highlights) VALUES
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01'), 'Cancelamento ativo de ruído'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01'), 'Até 30 horas de bateria'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01'), 'Conexão Bluetooth 5.3'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02'), 'Luz LED ajustável'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02'), 'Braço com ajuste de ângulo'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02'), 'Base compacta'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03'), 'Compartimento para notebook'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03'), 'Tecido resistente à água'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03'), 'Bolsos de acesso rápido'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04'), 'Parede dupla de aço inox'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04'), 'Mantém bebidas geladas ou quentes'),
-  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04'), 'Capacidade de 500 ml');
+INSERT INTO produto_model_highlights (produto_model_id, posicao, highlights) VALUES
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01'), 0, 'Cancelamento ativo de ruído'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01'), 1, 'Até 30 horas de bateria'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01'), 2, 'Conexão Bluetooth 5.3'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02'), 0, 'Luz LED ajustável'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02'), 1, 'Braço com ajuste de ângulo'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d02'), 2, 'Base compacta'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03'), 0, 'Compartimento para notebook'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03'), 1, 'Tecido resistente à água'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d03'), 2, 'Bolsos de acesso rápido'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04'), 0, 'Parede dupla de aço inox'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04'), 1, 'Mantém bebidas geladas ou quentes'),
+  (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d04'), 2, 'Capacidade de 500 ml');
 
 INSERT INTO imagem_model (imagem_id, imagem_url, produto_id) VALUES
   (UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1e01'), '/api/imagens/fones-wave-pro-cover.jpg', UUID_TO_BIN('7c6fc4df-3d9e-4e39-91ae-7a5c7a6b1d01')),
