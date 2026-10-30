@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
 import Container from "~/components/ui/Container";
 import SectionHeading from "~/components/ui/SectionHeading";
+import { getAssetUrl } from "~/services/api";
 import { type Category } from "~/services/products";
 
 export default function CategoryList({
@@ -28,17 +29,17 @@ export default function CategoryList({
           {categories.map((category) => (
             <Link
               key={category.id}
-              to={`/produtos?categoria=${category.slug}`}
+              to={`/produtos?categoria=${category.id}`}
               className="group relative h-48 overflow-hidden rounded-2xl bg-slate-950 sm:h-60 lg:h-72"
             >
               <img
-                src={category.imageUrl}
+                src={getAssetUrl(category.imageUrl ?? category.fotoUrl ?? null) ?? undefined}
                 alt=""
                 className="h-full w-full object-cover transition duration-500 scale-101 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-linear-to-t from-slate-950/85 via-slate-950/10 to-transparent" />
               <span className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-3 text-lg font-bold text-white">
-                {category.name}
+                {category.name || category.nome}
                 <ArrowUpRight className="h-5 w-5" aria-hidden="true" />
               </span>
             </Link>

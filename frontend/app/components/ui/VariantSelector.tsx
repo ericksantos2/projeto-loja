@@ -11,6 +11,7 @@ type VariantSelectorProps = {
   selectedId: string;
   onSelect: (id: string) => void;
   label?: string;
+  productAvailable?: boolean;
 };
 
 export default function VariantSelector({
@@ -18,29 +19,32 @@ export default function VariantSelector({
   selectedId,
   onSelect,
   label = "Cor",
+  productAvailable = true,
 }: VariantSelectorProps) {
   return (
     <div className="border-y border-slate-200 py-6">
       <p className="text-sm font-semibold text-slate-950">{label}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        {variants.map((variant) => (
+        {variants.map((variant) => {
+          const isEnabled = variant.available && productAvailable;
+          return (
           <button
             key={variant.id}
             type="button"
-            disabled={!variant.available}
+            disabled={!isEnabled}
             onClick={() => onSelect(variant.id)}
             className={cn(
-              "cursor-pointer rounded-lg border px-4 py-2.5 text-sm font-medium transition",
-              selectedId === variant.id
-                ? "border-slate-950 bg-slate-950 text-white"
-                : "border-slate-300 bg-white text-slate-700 hover:border-slate-500",
-              !variant.available &&
-                "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400",
+              "rounded-lg border px-4 py-2.5 text-sm font-medium transition",
+              !isEnabled && "cursor-not-allowed border-transparent bg-slate-200 text-slate-500",
+              isEnabled &&
+                (selectedId === variant.id
+                  ? "cursor-pointer border-slate-950 bg-slate-950 text-white"
+                  : "cursor-pointer border-slate-300 bg-white text-slate-700 hover:border-slate-500"),
             )}
           >
             {variant.label}
           </button>
-        ))}
+        )})}
       </div>
     </div>
   );

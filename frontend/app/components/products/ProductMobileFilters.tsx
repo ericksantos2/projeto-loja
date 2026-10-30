@@ -37,7 +37,7 @@ export function ProductMobileFilters({
           >
             <option value="">Todas as categorias</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.slug}>
+              <option key={cat.id} value={cat.id}>
                 {cat.name}
               </option>
             ))}

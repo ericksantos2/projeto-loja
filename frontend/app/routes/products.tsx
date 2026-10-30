@@ -8,8 +8,9 @@ import { ProductMobileFilters } from "~/components/products/ProductMobileFilters
 import { ProductSearchBar } from "~/components/products/ProductSearchBar";
 import Container from "~/components/ui/Container";
 import {
-  CATEGORY_METADATA,
   getCategory,
+  mapCategoriesToMetadata,
+  useCategoriesQuery,
   useProductsQuery,
 } from "~/services/products";
 
@@ -31,10 +32,12 @@ export default function Products() {
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: products = [], error, isLoading } = useProductsQuery();
+  const categoriesQuery = useCategoriesQuery();
 
   const categoryFilter = searchParams.get("categoria");
   const availableOnly = searchParams.get("disponivel") === "true";
   const sortBy = (searchParams.get("ordenar") as SortOption) || "name-asc";
+  const categories = mapCategoriesToMetadata(categoriesQuery.data ?? []);
 
   const updateFilters = (updates: Record<string, string | null>) => {
     const newParams = new URLSearchParams(searchParams);
@@ -51,38 +54,47 @@ export default function Products() {
   };
 
   const filteredProducts = products.filter((product) => {
+    const productName = product.name ?? product.nome ?? "";
+    const productCategoryId = product.categoryId ?? product.categoriaId ?? product.category?.id ?? product.categoria?.id;
     const matchesCategory =
       !categoryFilter ||
-      product.categoryId === getCategory(categoryFilter)?.id;
-    const matchesAvailable = !availableOnly || product.stock > 0;
+      productCategoryId === getCategory(categoryFilter, categories)?.id ||
+      product.category?.name === getCategory(categoryFilter, categories)?.name ||
+      product.categoria?.nome === getCategory(categoryFilter, categories)?.nome;
+    const matchesAvailable = !availableOnly || (product.stock ?? product.estoque ?? 0) > 0;
     const matchesSearch =
       !searchInput ||
-      product.name.toLowerCase().includes(searchInput.toLowerCase());
+      productName.toLowerCase().includes(searchInput.toLowerCase());
     return matchesCategory && matchesAvailable && matchesSearch;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const nameA = a.name ?? a.nome ?? "";
+    const nameB = b.name ?? b.nome ?? "";
+    const priceA = a.price ?? a.preco ?? 0;
+    const priceB = b.price ?? b.preco ?? 0;
+
     switch (sortBy) {
       case "name-asc":
-        return a.name.localeCompare(b.name);
+        return nameA.localeCompare(nameB);
       case "name-desc":
-        return b.name.localeCompare(a.name);
+        return nameB.localeCompare(nameA);
       case "price-asc":
-        return a.price - b.price;
+        return priceA - priceB;
       case "price-desc":
-        return b.price - a.price;
+        return priceB - priceA;
       default:
         return 0;
     }
   });
 
   const currentCategory = categoryFilter
-    ? getCategory(categoryFilter)
+    ? getCategory(categoryFilter, categories)
     : null;
   const hasActiveFilters = categoryFilter || availableOnly || searchInput;
 
-  if (isLoading) return <Container className="py-14 text-center">Carregando...</Container>;
-  if (error) return <Container className="py-14 text-center text-red-500">Erro: {error.message}</Container>;
+  if (isLoading || categoriesQuery.isLoading) return <Container className="py-14 text-center">Carregando...</Container>;
+  if (error || categoriesQuery.error) return <Container className="py-14 text-center text-red-500">Erro: {error?.message ?? categoriesQuery.error?.message ?? "Erro ao carregar dados."}</Container>;
 
   return (
     <main className="bg-slate-50 py-8 sm:py-10 lg:py-14">
@@ -114,7 +126,7 @@ export default function Products() {
               availableOnly={availableOnly}
               hasActiveFilters={!!hasActiveFilters}
               onToggleFilters={() => setShowFilters(!showFilters)}
-              categories={CATEGORY_METADATA}
+              categories={categories}
               onUpdateFilters={updateFilters}
               onClearFilters={clearFilters}
             />
@@ -125,7 +137,7 @@ export default function Products() {
           showFilters={showFilters}
           categoryFilter={categoryFilter}
           availableOnly={availableOnly}
-          categories={CATEGORY_METADATA}
+          categories={categories}
           onUpdateFilters={updateFilters}
         />
 
