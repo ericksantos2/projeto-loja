@@ -11,5 +11,11 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+    proxy: {
+      '/api': {
+        target: process.env.API_INTERNAL_URL?.replace(/\/api\/?$/, '') || 'http://localhost:65062',
+        changeOrigin: true,
+      },
+    },
   },
 });
