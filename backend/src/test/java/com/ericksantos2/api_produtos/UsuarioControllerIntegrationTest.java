@@ -349,6 +349,38 @@ class UsuarioControllerIntegrationTest {
         .andExpect(status().isBadRequest());
   }
 
+  @Test
+  @DisplayName("Usuário comum pode excluir a própria conta fornecendo a senha correta")
+  void usuarioPodeExcluirPropriaConta() throws Exception {
+    carrinhos.save(carrinhoDe(USER));
+
+    // Senha errada é rejeitada
+    mockMvc.perform(post("/api/auth/delete-account")
+        .header("Authorization", bearer(USER, USER_PASSWORD))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"senha\":\"senha-errada\"}"))
+        .andExpect(status().isBadRequest());
+
+    assertThat(usuarios.findByUsername(USER)).isPresent();
+
+    // Com senha correta a conta é deletada
+    mockMvc.perform(post("/api/auth/delete-account")
+        .header("Authorization", bearer(USER, USER_PASSWORD))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"senha\":\"" + USER_PASSWORD + "\"}"))
+        .andExpect(status().isNoContent());
+
+    assertThat(usuarios.findByUsername(USER)).isEmpty();
+    assertThat(carrinhos.findByUsuarioUsername(USER)).isEmpty();
+
+    // Admin raiz não pode excluir a própria conta
+    mockMvc.perform(post("/api/auth/delete-account")
+        .header("Authorization", bearer(ROOT, ROOT_PASSWORD))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"senha\":\"" + ROOT_PASSWORD + "\"}"))
+        .andExpect(status().isBadRequest());
+  }
+
   private void criar(String username, String senha, Cargo cargo, boolean ativo) {
     UsuarioModel usuario = usuarios.findByUsername(username).orElseGet(UsuarioModel::new);
     usuario.setUsername(username);
