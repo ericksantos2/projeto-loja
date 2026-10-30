@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 
 import type { Route } from "./+types/root";
+import { CartProvider } from "./components/CartProvider";
 import Header from "./components/header";
 import Footer from "./components/foooter";
 import NotFound from "./routes/not-found";
@@ -68,13 +69,15 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <Footer />
-      </div>
+      <CartProvider>
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+      </CartProvider>
     </QueryClientProvider>
   );
 }
