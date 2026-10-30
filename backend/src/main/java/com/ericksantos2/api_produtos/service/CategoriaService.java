@@ -1,8 +1,15 @@
 package com.ericksantos2.api_produtos.service;
 
 import java.io.IOException;
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +40,7 @@ public class CategoriaService {
 
   @Transactional(readOnly = true)
   public List<CategoriaResponseDTO> listar() {
-    return repository.findAll().stream().map(this::toResponse).toList();
+    return ordenarPorPosicao(repository.findAll()).stream().map(this::toResponse).toList();
   }
 
   @Transactional(readOnly = true)
@@ -44,20 +51,61 @@ public class CategoriaService {
 
   @Transactional
   public CategoriaResponseDTO criar(CriarCategoriaDTO dto, MultipartFile foto) throws IOException {
-    validarSlug(dto.getSlug(), null);
+    String id = gerarId(dto.getNome());
+    if (repository.existsById(id)) {
+      throw new IllegalArgumentException("Já existe uma categoria com esse nome.");
+    }
+
     CategoriaModel categoria = new CategoriaModel();
-    categoria.setId(dto.getSlug());
-    preencher(categoria, dto.getNome(), dto.getSlug(), dto.getDescricao());
+    preencher(categoria, dto.getNome(), id, dto.getDescricao());
+    categoria.setPosicao(proximaPosicao());
     salvarFoto(categoria, foto);
     return toResponse(repository.save(categoria));
+  }
+
+  /**
+   * Ordena a lista de categorias. A ordem do array é a final; categorias
+   * omitidas são anexadas ao fim, preservando a ordem atual.
+   */
+  @Transactional
+  public List<String> reordenar(List<String> idsInformados) {
+    List<String> ids = idsInformados == null ? List.of() : idsInformados;
+    if (ids.stream().anyMatch(Objects::isNull)) {
+      throw new IllegalArgumentException("A lista de categorias contém um ID nulo.");
+    }
+    if (new HashSet<>(ids).size() != ids.size()) {
+      throw new IllegalArgumentException("A lista de categorias contém IDs repetidos.");
+    }
+
+    List<CategoriaModel> todas = repository.findAll();
+    Map<String, CategoriaModel> porId = new LinkedHashMap<>();
+    todas.forEach(categoria -> porId.put(categoria.getId(), categoria));
+
+    if (!porId.keySet().containsAll(ids)) {
+      throw new IllegalArgumentException("Uma das categorias informadas não existe.");
+    }
+
+    List<CategoriaModel> restantes = ordenarPorPosicao(todas);
+    List<CategoriaModel> ordenadas = new ArrayList<>();
+    for (String id : ids) {
+      CategoriaModel categoria = porId.get(id);
+      ordenadas.add(categoria);
+      restantes.remove(categoria);
+    }
+    ordenadas.addAll(restantes);
+
+    for (int posicao = 0; posicao < ordenadas.size(); posicao++) {
+      ordenadas.get(posicao).setPosicao(posicao);
+    }
+    repository.saveAll(ordenadas);
+    repository.flush();
+
+    return ordenadas.stream().map(CategoriaModel::getId).toList();
   }
 
   @Transactional
   public CategoriaResponseDTO atualizar(String id, AtualizarCategoriaDTO dto, MultipartFile foto) throws IOException {
     CategoriaModel categoria = repository.findById(id).orElseThrow(() -> new java.util.NoSuchElementException("Categoria não encontrada."));
-    if (dto.getSlug() != null && !dto.getSlug().equals(id)) {
-      throw new IllegalArgumentException("O slug da categoria não pode ser alterado porque é seu ID funcional.");
-    }
     if (dto.getNome() != null) categoria.setNome(dto.getNome());
     if (dto.getDescricao() != null) categoria.setDescricao(dto.getDescricao());
 
@@ -84,25 +132,67 @@ public class CategoriaService {
       throw new CategoriaEmUsoException("A categoria não pode ser excluída porque possui produtos associados.");
     }
     repository.delete(categoria);
+    repository.flush();
     if (categoria.getFotoUrl() != null) {
       storageService.delete(nomeArquivo(categoria.getFotoUrl()));
     }
+    renumerarPosicoes();
   }
 
-  private void preencher(CategoriaModel categoria, String nome, String slug, String descricao) {
-    if (nome == null || nome.isBlank() || slug == null || slug.isBlank()) {
-      throw new IllegalArgumentException("Nome e slug são obrigatórios.");
+  private int proximaPosicao() {
+    return repository.findAll().stream()
+        .map(CategoriaModel::getPosicao)
+        .filter(Objects::nonNull)
+        .max(Integer::compareTo)
+        .map(posicao -> posicao + 1)
+        .orElse(0);
+  }
+
+  private List<CategoriaModel> ordenarPorPosicao(List<CategoriaModel> categorias) {
+    List<CategoriaModel> ordenadas = new ArrayList<>(categorias);
+    ordenadas.sort(
+        Comparator.comparing(CategoriaModel::getPosicao, Comparator.nullsLast(Integer::compareTo))
+            .thenComparing(CategoriaModel::getNome, Comparator.nullsLast(String::compareTo))
+            .thenComparing(CategoriaModel::getId));
+    return ordenadas;
+  }
+
+  private void renumerarPosicoes() {
+    List<CategoriaModel> categorias = ordenarPorPosicao(repository.findAll());
+    for (int posicao = 0; posicao < categorias.size(); posicao++) {
+      categorias.get(posicao).setPosicao(posicao);
     }
-    categoria.setId(slug);
+    repository.saveAll(categorias);
+  }
+
+  private void preencher(CategoriaModel categoria, String nome, String id, String descricao) {
+    if (nome == null || nome.isBlank() || id == null || id.isBlank()) {
+      throw new IllegalArgumentException("O nome da categoria é obrigatório.");
+    }
+    categoria.setId(id);
     categoria.setNome(nome);
-    categoria.setSlug(slug);
     categoria.setDescricao(descricao);
   }
 
-  private void validarSlug(String slug, String id) {
-    if (slug == null || slug.isBlank() || (id == null ? repository.existsBySlug(slug) : repository.existsBySlugAndIdNot(slug, id))) {
-      throw new IllegalArgumentException("Slug inválido ou já utilizado.");
+  /** Gera o identificador da categoria a partir do nome (o id é o slug). */
+  private String gerarId(String nome) {
+    if (nome == null || nome.isBlank()) {
+      throw new IllegalArgumentException("O nome da categoria é obrigatório.");
     }
+
+    String id = Normalizer.normalize(nome, Normalizer.Form.NFD)
+        .replaceAll("\\p{M}", "")
+        .toLowerCase()
+        .replaceAll("[^a-z0-9]+", "-")
+        .replaceAll("^-+|-+$", "");
+
+    if (id.isEmpty()) {
+      id = "categoria";
+    }
+    if (id.length() > 80) {
+      id = id.substring(0, 80).replaceAll("-+$", "");
+    }
+    return id;
   }
 
   private void salvarFoto(CategoriaModel categoria, MultipartFile foto) throws IOException {
@@ -117,6 +207,7 @@ public class CategoriaService {
   }
 
   private CategoriaResponseDTO toResponse(CategoriaModel c) {
-    return new CategoriaResponseDTO(c.getId(), c.getNome(), c.getSlug(), c.getDescricao(), c.getFotoUrl());
+    return new CategoriaResponseDTO(
+        c.getId(), c.getNome(), c.getDescricao(), c.getFotoUrl(), c.getPosicao());
   }
 }

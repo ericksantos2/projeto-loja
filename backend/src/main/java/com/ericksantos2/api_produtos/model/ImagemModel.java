@@ -20,6 +20,9 @@ public class ImagemModel {
 
   private String imagemUrl;
 
+  /** Posição na galeria do produto (0 = primeira). */
+  private Integer posicao;
+
   @ManyToOne
   @JsonIgnore
   private ProdutoModel produto;

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +51,12 @@ public class CategoriaController {
     return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto, foto));
   }
 
+  @PutMapping(path = "/ordem", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @SecurityRequirement(name = "apiToken")
+  public ResponseEntity<List<String>> reordenar(@RequestBody OrdenarCategoriasDTO dados) {
+    return ResponseEntity.ok(service.reordenar(dados == null ? null : dados.categoriaIds()));
+  }
+
   @PatchMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @SecurityRequirement(name = "apiToken")
   public ResponseEntity<CategoriaResponseDTO> atualizar(
@@ -63,5 +71,8 @@ public class CategoriaController {
   public ResponseEntity<Void> deletar(@PathVariable String id) throws IOException {
     service.deletar(id);
     return ResponseEntity.noContent().build();
+  }
+
+  public record OrdenarCategoriasDTO(List<String> categoriaIds) {
   }
 }

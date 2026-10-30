@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileStorageService {
+  public static final String PUBLIC_PREFIX = "/api/imagens/";
+
   private final Path uploadDirectory;
 
   public FileStorageService(@Value("${file.upload-dir}") String uploadDirectory) {
@@ -36,6 +38,20 @@ public class FileStorageService {
 
     Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
     return storedName;
+  }
+
+  /** URL pública usada nas respostas da API e no frontend. */
+  public String publicUrl(String storedName) {
+    return PUBLIC_PREFIX + storedName;
+  }
+
+  /** Aceita tanto o nome do arquivo quanto a URL pública já prefixada. */
+  public void deleteByUrl(String imagemUrl) throws IOException {
+    if (imagemUrl == null || imagemUrl.isBlank()) return;
+    String storedName = imagemUrl.startsWith(PUBLIC_PREFIX)
+        ? imagemUrl.substring(PUBLIC_PREFIX.length())
+        : imagemUrl;
+    delete(storedName);
   }
 
   public void delete(String storedName) throws IOException {

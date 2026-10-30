@@ -13,7 +13,9 @@ public class CategoriaModel {
   private String id;
 
   private String nome;
-  private String slug;
   private String descricao;
   private String fotoUrl;
+
+  /** Posição de exibição nas listas de categorias (0 = primeira). */
+  private Integer posicao;
 }

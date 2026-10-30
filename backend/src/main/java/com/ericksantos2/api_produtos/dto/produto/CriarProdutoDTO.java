@@ -14,7 +14,6 @@ import lombok.Setter;
 public class CriarProdutoDTO {
   private String descricao;
   private String nome;
-  private String slug;
   private String categoryId;
   private String descricaoBreve;
   private Double preco;

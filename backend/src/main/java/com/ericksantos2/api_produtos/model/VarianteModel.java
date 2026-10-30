@@ -27,6 +27,9 @@ public class VarianteModel {
   private String value;
   private Boolean available;
 
+  /** Posição na lista de variantes do produto (0 = primeira). */
+  private Integer posicao;
+
   @ManyToOne
   @JsonIgnore
   private ProdutoModel produto;

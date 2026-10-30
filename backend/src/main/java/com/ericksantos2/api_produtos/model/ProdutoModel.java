@@ -13,6 +13,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.OrderColumn;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,7 +32,6 @@ public class ProdutoModel {
   @Column(columnDefinition = "TEXT")
   private String descricao;
 
-  private String slug;
   private String categoryId;
   private String descricaoBreve;
   private Double preco;
@@ -42,13 +43,20 @@ public class ProdutoModel {
 
   private Boolean featured = false;
 
+  /** Posição no carrossel de destaques (0 = primeiro). */
+  private Integer posicaoDestaque;
+
   @ElementCollection
+  @OrderColumn(name = "posicao")
   private List<String> highlights;
 
+  @OrderBy("posicao ASC, imagemId ASC")
   @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ImagemModel> imagens = new ArrayList<>();
+  @OrderBy("posicao ASC, id ASC")
   @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<EspecificacaoModel> especificacoes = new ArrayList<>();
+  @OrderBy("posicao ASC, id ASC")
   @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<VarianteModel> variantes = new ArrayList<>();
 }

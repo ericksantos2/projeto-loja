@@ -51,7 +51,7 @@ public class ProdutoController {
               name = "produto", contentType = MediaType.APPLICATION_JSON_VALUE)))
       @Parameter(description = "Dados do produto em JSON")
       @RequestPart("produto") CriarProdutoDTO produto,
-      @RequestPart("imagens") List<MultipartFile> imagens) {
+      @RequestPart(value = "imagens", required = false) List<MultipartFile> imagens) {
     try {
       produto.setImagens(imagens);
       ProdutoModel novoProduto = service.salvar(produto);
@@ -59,6 +59,12 @@ public class ProdutoController {
     } catch (IOException err) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
+  }
+
+  @PutMapping(path = "/destaques/ordem", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @SecurityRequirement(name = "apiToken")
+  public ResponseEntity<List<UUID>> reordenaDestaques(@RequestBody OrdenarDestaquesDTO dados) {
+    return ResponseEntity.ok(service.reordenarDestaques(dados == null ? null : dados.produtoIds()));
   }
 
   @GetMapping
@@ -83,6 +89,18 @@ public class ProdutoController {
     } catch (IOException err) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
+  }
+
+  @PutMapping(path = "/{produtoId}/imagens/ordem", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @SecurityRequirement(name = "apiToken")
+  public ResponseEntity<List<ImagemResponseDTO>> reordenarImagens(
+      @PathVariable UUID produtoId,
+      @RequestBody OrdenarImagensDTO dados) {
+    return service.reordenarImagens(produtoId, dados == null ? null : dados.imagemIds())
+        .map(imagens -> ResponseEntity.ok(imagens.stream()
+            .map(imagem -> new ImagemResponseDTO(imagem.getImagemId(), imagem.getImagemUrl()))
+            .toList()))
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @PutMapping(path = "/{produtoId}/imagens/{imagemId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -114,6 +132,30 @@ public class ProdutoController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  @PutMapping(path = "/{produtoId}/especificacoes/ordem", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @SecurityRequirement(name = "apiToken")
+  public ResponseEntity<List<EspecificacaoResponseDTO>> reordenaEspecificacoes(
+      @PathVariable UUID produtoId,
+      @RequestBody OrdenarEspecificacoesDTO dados) {
+    return service.reordenarEspecificacoes(produtoId, dados == null ? null : dados.especificacaoIds())
+        .map(itens -> ResponseEntity.ok(itens.stream()
+            .map(item -> new EspecificacaoResponseDTO(item.getId(), item.getLabel(), item.getValue()))
+            .toList()))
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PutMapping("/{produtoId}/especificacoes/{especificacaoId}")
+  @SecurityRequirement(name = "apiToken")
+  public ResponseEntity<EspecificacaoResponseDTO> atualizaEspecificacao(
+      @PathVariable UUID produtoId,
+      @PathVariable UUID especificacaoId,
+      @RequestBody CriarEspecificacaoDTO dados) {
+    return service.atualizarEspecificacao(produtoId, especificacaoId, dados)
+        .map(item -> ResponseEntity.ok(
+            new EspecificacaoResponseDTO(item.getId(), item.getLabel(), item.getValue())))
+        .orElse(ResponseEntity.notFound().build());
+  }
+
   @PostMapping("/{produtoId}/variantes")
   @SecurityRequirement(name = "apiToken")
   public ResponseEntity<List<VarianteResponseDTO>> adicionaVariantes(
@@ -125,6 +167,31 @@ public class ProdutoController {
                 .map(item -> new VarianteResponseDTO(
                     item.getId(), item.getLabel(), item.getValue(), item.getAvailable()))
                 .toList()))
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PutMapping(path = "/{produtoId}/variantes/ordem", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @SecurityRequirement(name = "apiToken")
+  public ResponseEntity<List<VarianteResponseDTO>> reordenaVariantes(
+      @PathVariable UUID produtoId,
+      @RequestBody OrdenarVariantesDTO dados) {
+    return service.reordenarVariantes(produtoId, dados == null ? null : dados.varianteIds())
+        .map(itens -> ResponseEntity.ok(itens.stream()
+            .map(item -> new VarianteResponseDTO(
+                item.getId(), item.getLabel(), item.getValue(), item.getAvailable()))
+            .toList()))
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PutMapping("/{produtoId}/variantes/{varianteId}")
+  @SecurityRequirement(name = "apiToken")
+  public ResponseEntity<VarianteResponseDTO> atualizaVariante(
+      @PathVariable UUID produtoId,
+      @PathVariable UUID varianteId,
+      @RequestBody CriarVarianteDTO dados) {
+    return service.atualizarVariante(produtoId, varianteId, dados)
+        .map(item -> ResponseEntity.ok(new VarianteResponseDTO(
+            item.getId(), item.getLabel(), item.getValue(), item.getAvailable())))
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -203,5 +270,17 @@ public class ProdutoController {
     return service.deletarVariante(produtoId, varianteId)
         ? ResponseEntity.noContent().build()
         : ResponseEntity.notFound().build();
+  }
+
+  public record OrdenarImagensDTO(List<UUID> imagemIds) {
+  }
+
+  public record OrdenarEspecificacoesDTO(List<UUID> especificacaoIds) {
+  }
+
+  public record OrdenarVariantesDTO(List<UUID> varianteIds) {
+  }
+
+  public record OrdenarDestaquesDTO(List<UUID> produtoIds) {
   }
 }

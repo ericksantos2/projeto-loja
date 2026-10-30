@@ -7,7 +7,6 @@ public record ProdutoDetalhadoDTO(
     UUID id,
     String nome,
     String descricao,
-    String slug,
     String descricaoBreve,
     Double preco,
     Double precoOriginal,

@@ -5,7 +5,6 @@ import java.util.UUID;
 public record ProdutoResumoDTO(
     UUID id,
     String nome,
-    String slug,
     String categoryId,
     String descricaoBreve,
     Double preco,
@@ -15,5 +14,6 @@ public record ProdutoResumoDTO(
     Integer estoque,
     String imagemPrincipal,
     Boolean featured,
+    Integer posicaoDestaque,
     Long quantidadeImagens) {
 }

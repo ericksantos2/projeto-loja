@@ -7,6 +7,5 @@ import lombok.Setter;
 @Setter
 public class AtualizarCategoriaDTO {
   private String nome;
-  private String slug;
   private String descricao;
 }

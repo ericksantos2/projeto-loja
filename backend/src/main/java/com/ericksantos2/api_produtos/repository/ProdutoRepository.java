@@ -15,15 +15,16 @@ public interface ProdutoRepository extends JpaRepository<ProdutoModel, UUID> {
 
   @Query("""
       SELECT new com.ericksantos2.api_produtos.dto.produto.ProdutoResumoDTO(
-          p.id, p.nome, p.slug, p.categoryId, p.descricaoBreve, p.preco,
+          p.id, p.nome, p.categoryId, p.descricaoBreve, p.preco,
           p.precoOriginal, p.rating, p.contagemReviews, p.estoque,
-          p.imagemPrincipal, p.featured, COUNT(i))
+          p.imagemPrincipal, p.featured, p.posicaoDestaque, COUNT(i))
       FROM ProdutoModel p
       LEFT JOIN p.imagens i
       WHERE (:categoria IS NULL OR p.categoryId = :categoria)
       AND (:featured IS NULL OR p.featured = :featured)
-      GROUP BY p.id, p.nome, p.slug, p.categoryId, p.descricaoBreve, p.preco,
-          p.precoOriginal, p.rating, p.contagemReviews, p.estoque, p.imagemPrincipal, p.featured
+      GROUP BY p.id, p.nome, p.categoryId, p.descricaoBreve, p.preco,
+          p.precoOriginal, p.rating, p.contagemReviews, p.estoque, p.imagemPrincipal, p.featured,
+          p.posicaoDestaque
       """)
   List<ProdutoResumoDTO> listarResumo(String categoria, Boolean featured);
 }

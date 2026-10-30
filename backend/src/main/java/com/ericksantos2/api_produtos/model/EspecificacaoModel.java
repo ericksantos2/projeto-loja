@@ -27,6 +27,9 @@ public class EspecificacaoModel {
   private String label;
   private String value;
 
+  /** Posição na lista de especificações do produto (0 = primeira). */
+  private Integer posicao;
+
   @ManyToOne
   @JsonIgnore
   private ProdutoModel produto;
