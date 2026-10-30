@@ -120,7 +120,8 @@ class ProdutoControllerIntegrationTest extends ProdutoControllerTestSupport {
         {
           "nome": "Produto Atualizado",
           "preco": 3200.00,
-          "descricao": "Nova descricao"
+          "descricao": "Nova descricao",
+          "featured": true
         }
         """;
 
@@ -132,7 +133,46 @@ class ProdutoControllerIntegrationTest extends ProdutoControllerTestSupport {
         .andExpect(jsonPath("$.id").value(id))
         .andExpect(jsonPath("$.nome").value("Produto Atualizado"))
         .andExpect(jsonPath("$.preco").value(3200.00))
-        .andExpect(jsonPath("$.descricao").value("Nova descricao"));
+        .andExpect(jsonPath("$.descricao").value("Nova descricao"))
+        .andExpect(jsonPath("$.featured").value(true));
+  }
+
+  @Test
+  @DisplayName("Deve reordenar os produtos em destaque")
+  void deveReordenarDestaques() throws Exception {
+    String primeiro = cadastrarProdutoDeTeste("Destaque Um");
+    String segundo = cadastrarProdutoDeTeste("Destaque Dois");
+
+    mockMvc.perform(patch("/api/produtos/{id}", primeiro)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"featured\": true}"))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(patch("/api/produtos/{id}", segundo)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"featured\": true}"))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(put("/api/produtos/destaques/ordem")
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"produtoIds\":[\"" + segundo + "\",\"" + primeiro + "\"]}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0]").value(segundo))
+        .andExpect(jsonPath("$[1]").value(primeiro));
+
+    mockMvc.perform(get("/api/produtos").param("featured", "true"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[?(@.id == '" + segundo + "')].posicaoDestaque", contains(0)))
+        .andExpect(jsonPath("$[?(@.id == '" + primeiro + "')].posicaoDestaque", contains(1)));
+
+    mockMvc.perform(put("/api/produtos/destaques/ordem")
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"produtoIds\":[\"" + UUID.randomUUID() + "\"]}"))
+        .andExpect(status().isBadRequest());
   }
 
   @Test

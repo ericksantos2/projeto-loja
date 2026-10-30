@@ -47,6 +47,7 @@ abstract class ProdutoControllerTestSupport {
     admin.setUsername(ADMIN_USERNAME);
     admin.setSenha(passwordEncoder.encode(ADMIN_PASSWORD));
     admin.setCargo(com.ericksantos2.api_produtos.model.Cargo.ADMIN);
+    admin.setAtivo(true);
     usuarios.saveAndFlush(admin);
     Files.createDirectories(UPLOAD_DIR);
     mockMvc = MockMvcBuilders

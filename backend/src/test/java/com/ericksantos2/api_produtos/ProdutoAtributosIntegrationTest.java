@@ -60,6 +60,18 @@ class ProdutoAtributosIntegrationTest extends ProdutoControllerTestSupport {
     org.junit.jupiter.api.Assertions.assertEquals(processadorId,
         idDaEspecificacao(especificacoesSalvas, "Processador", "Octa-Core"));
 
+    mockMvc.perform(put("/api/produtos/{produtoId}/especificacoes/{especificacaoId}", id, specId)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{ \"label\": \"Peso\", \"value\": \"200g\" }"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(specId))
+        .andExpect(jsonPath("$.value").value("200g"));
+
+    mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.especificacoes[?(@.label == 'Peso' && @.value == '200g')]", hasSize(1)));
+
     mockMvc.perform(delete("/api/produtos/{produtoId}/especificacoes/{especificacaoId}", id, specId)
         .header("Authorization", bearerToken()))
         .andExpect(status().isNoContent());
@@ -126,6 +138,18 @@ class ProdutoAtributosIntegrationTest extends ProdutoControllerTestSupport {
     org.junit.jupiter.api.Assertions.assertEquals(varianteId, idDaVariante(variantesSalvas, "220V"));
     org.junit.jupiter.api.Assertions.assertEquals(variante110Id, idDaVariante(variantesSalvas, "110V"));
 
+    mockMvc.perform(put("/api/produtos/{produtoId}/variantes/{varianteId}", id, varianteId)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{ \"label\": \"Voltagem\", \"value\": \"220V\", \"available\": false }"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(varianteId))
+        .andExpect(jsonPath("$.available").value(false));
+
+    mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.variantes[?(@.value == '220V' && @.available == false)]", hasSize(1)));
+
     mockMvc.perform(delete("/api/produtos/{produtoId}/variantes/{varianteId}", id, varianteId)
         .header("Authorization", bearerToken()))
         .andExpect(status().isNoContent());
@@ -150,6 +174,77 @@ class ProdutoAtributosIntegrationTest extends ProdutoControllerTestSupport {
         .contentType(MediaType.APPLICATION_JSON)
         .content(payload))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("Deve reordenar especificações e anexar as não informadas ao fim")
+  void deveReordenarEspecificacoes() throws Exception {
+    String id = cadastrarProdutoDeTeste("Produto Ordem Specs");
+
+    mockMvc.perform(post("/api/produtos/{produtoId}/especificacoes", id)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("[{\"label\":\"Peso\",\"value\":\"1kg\"}]"))
+        .andExpect(status().isCreated());
+
+    String detalhe = mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    List<String> ids = JsonPath.read(detalhe, "$.especificacoes[*].id");
+    org.junit.jupiter.api.Assertions.assertEquals(3, ids.size());
+
+    String primeira = ids.get(0);
+    String segunda = ids.get(1);
+    String terceira = ids.get(2);
+
+    mockMvc.perform(put("/api/produtos/{produtoId}/especificacoes/ordem", id)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"especificacaoIds\":[\"" + terceira + "\"]}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].id", contains(terceira, primeira, segunda)));
+
+    mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.especificacoes[*].id", contains(terceira, primeira, segunda)));
+
+    mockMvc.perform(put("/api/produtos/{produtoId}/especificacoes/ordem", id)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"especificacaoIds\":[\"" + UUID.randomUUID() + "\"]}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("Deve reordenar variantes e anexar as não informadas ao fim")
+  void deveReordenarVariantes() throws Exception {
+    String id = cadastrarProdutoDeTeste("Produto Ordem Variantes");
+
+    mockMvc.perform(post("/api/produtos/{produtoId}/variantes", id)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("[{\"label\":\"Cor\",\"value\":\"Azul\",\"available\":true}]"))
+        .andExpect(status().isCreated());
+
+    String detalhe = mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    List<String> ids = JsonPath.read(detalhe, "$.variantes[*].id");
+    org.junit.jupiter.api.Assertions.assertEquals(2, ids.size());
+
+    String primeira = ids.get(0);
+    String segunda = ids.get(1);
+
+    mockMvc.perform(put("/api/produtos/{produtoId}/variantes/ordem", id)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"varianteIds\":[\"" + segunda + "\"]}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].id", contains(segunda, primeira)));
+
+    mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.variantes[*].id", contains(segunda, primeira)));
   }
 
   @Test
@@ -178,6 +273,17 @@ class ProdutoAtributosIntegrationTest extends ProdutoControllerTestSupport {
     mockMvc.perform(get("/api/produtos/{id}", id))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.highlights", contains("Novo destaque 1", "Novo destaque 2", "Novo destaque 3")));
+
+    // Reordenar mantém a nova ordem salva.
+    mockMvc.perform(put("/api/produtos/{produtoId}/highlights", id)
+        .header("Authorization", bearerToken())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("[\"Novo destaque 3\",\"Novo destaque 1\",\"Novo destaque 2\"]"))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.highlights", contains("Novo destaque 3", "Novo destaque 1", "Novo destaque 2")));
   }
 
   private String idDaEspecificacao(List<Map<String, Object>> itens, String label, String value) {

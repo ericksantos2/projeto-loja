@@ -4,6 +4,11 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import java.util.UUID;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -70,6 +75,50 @@ class ProdutoImagemIntegrationTest extends ProdutoControllerTestSupport {
         .header("Authorization", bearerToken()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.imagemId").value(imagemId));
+  }
+
+  @Test
+  @DisplayName("Deve reordenar imagens e anexar as não informadas ao fim")
+  void deveReordenarImagens() throws Exception {
+    String id = cadastrarProdutoDeTeste("Produto Reordenar Imagens");
+
+    MockMultipartFile extra1 = new MockMultipartFile(
+        "imagens", "reordenar-1.png", MediaType.IMAGE_PNG_VALUE, "r1".getBytes());
+    MockMultipartFile extra2 = new MockMultipartFile(
+        "imagens", "reordenar-2.png", MediaType.IMAGE_PNG_VALUE, "r2".getBytes());
+
+    mockMvc.perform(multipart("/api/produtos/{produtoId}/imagens", id)
+        .file(extra1)
+        .file(extra2)
+        .header("Authorization", bearerToken()))
+        .andExpect(status().isCreated());
+
+    String getResp = mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+
+    List<String> ids = JsonPath.read(getResp, "$.imagens[*].imagemId");
+    assertThat(ids).hasSize(3);
+    String primeira = ids.get(0);
+    String segunda = ids.get(1);
+    String terceira = ids.get(2);
+
+    mockMvc.perform(put("/api/produtos/{produtoId}/imagens/ordem", id)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"imagemIds\":[\"" + terceira + "\",\"" + primeira + "\"]}")
+        .header("Authorization", bearerToken()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].imagemId", contains(terceira, primeira, segunda)));
+
+    mockMvc.perform(get("/api/produtos/{id}", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.imagens[*].imagemId", contains(terceira, primeira, segunda)));
+
+    mockMvc.perform(put("/api/produtos/{produtoId}/imagens/ordem", id)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"imagemIds\":[\"" + UUID.randomUUID() + "\"]}")
+        .header("Authorization", bearerToken()))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
