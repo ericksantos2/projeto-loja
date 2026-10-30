@@ -1,52 +1,45 @@
 import { api } from "~/services/api";
+import {
+  clearSession,
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  getStoredRole,
+  getStoredUsername,
+  onAuthChanged,
+  saveIdentity,
+  saveSession,
+  type AuthTokenResponse,
+} from "~/services/session";
 
-export type AuthTokenResponse = {
-  accessToken: string;
-  refreshToken: string;
-  tipo: string;
-  expiresIn: number;
-  refreshExpiresIn: number;
-  username: string;
-  cargo: string;
-};
-
-const ACCESS_TOKEN_KEY = "scout_access_token";
-const REFRESH_TOKEN_KEY = "scout_refresh_token";
-const USERNAME_KEY = "scout_username";
-const ROLE_KEY = "scout_role";
+export type { AuthTokenResponse };
+export { onAuthChanged };
 
 export function getAuthUsername() {
-  return localStorage.getItem(USERNAME_KEY) ?? "";
+  return getStoredUsername();
 }
 
 export function getAuthRole() {
-  return localStorage.getItem(ROLE_KEY) ?? "";
+  return getStoredRole();
 }
 
 export function isAuthenticated() {
-  return Boolean(localStorage.getItem(ACCESS_TOKEN_KEY));
+  return Boolean(getStoredAccessToken());
 }
 
 export function getAccessToken() {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return getStoredAccessToken();
 }
 
 export function getRefreshToken() {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return getStoredRefreshToken();
 }
 
 export function saveAuthSession(payload: AuthTokenResponse) {
-  localStorage.setItem(ACCESS_TOKEN_KEY, payload.accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, payload.refreshToken);
-  localStorage.setItem(USERNAME_KEY, payload.username);
-  localStorage.setItem(ROLE_KEY, payload.cargo);
+  saveSession(payload);
 }
 
 export function clearAuthSession() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(USERNAME_KEY);
-  localStorage.removeItem(ROLE_KEY);
+  clearSession();
 }
 
 export type UsuarioAtual = {
@@ -56,8 +49,7 @@ export type UsuarioAtual = {
 
 export async function fetchCurrentUser() {
   const usuario = await api.get<UsuarioAtual>("/auth/me", { requiresAuth: true });
-  localStorage.setItem(USERNAME_KEY, usuario.username);
-  localStorage.setItem(ROLE_KEY, usuario.cargo);
+  saveIdentity(usuario.username, usuario.cargo);
   return usuario;
 }
 
@@ -73,6 +65,19 @@ export async function login(username: string, senha: string) {
 
   saveAuthSession(payload);
   return payload;
+}
+
+export async function register(username: string, senha: string) {
+  await api.post<void>("/auth/register", { username, senha });
+  return login(username, senha);
+}
+
+export async function changePassword(senhaAtual: string, novaSenha: string) {
+  await api.post<void>(
+    "/auth/change-password",
+    { senhaAtual, novaSenha },
+    { requiresAuth: true },
+  );
 }
 
 export async function logout() {
