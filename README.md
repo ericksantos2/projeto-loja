@@ -1,87 +1,103 @@
-# Projeto Loja
+# Scout Store — Plataforma de E-commerce Full-Stack
 
-Este é um projeto de uma aplicação de loja online, composta por um backend robusto e um frontend moderno.
+Aplicação completa de loja virtual e painel administrativo, composta por uma API RESTful segura em **Spring Boot 4 / Java 26** e um frontend moderno e responsivo em **React 19 / React Router 7 / TypeScript**.
 
-> **Nota:** O projeto utiliza infraestrutura Docker otimizada para desenvolvimento e testes, separando os ambientes para maior eficiência e isolamento.
+> **Nota:** Todo o ambiente de desenvolvimento e de testes automatizados é orquestrado via **Docker Compose**, garantindo isolamento e execução imediata sem necessidade de instalar SDKs localmente.
+
+---
 
 ## Destaques do Projeto
 
-Este projeto foi desenvolvido com foco em boas práticas de engenharia de software e segurança, demonstrando competência nas seguintes áreas:
+- **Autenticação, Sessão e Controle de Acesso Hierárquico (RBAC)**:
+  - Autenticação via **JWT (`Access Token`)** de curta duração combinado com **`Refresh Token` rotativo** persistido em banco (com detecção de reuso por família de tokens e revogação automática).
+  - Três níveis de acesso (`ADMIN`, `GESTOR` e `USER`) com regras estritas de hierarquia:
+    - `ADMIN` gerencia `GESTOR` e `USER`.
+    - `GESTOR` gerencia `USER`.
+  - **Ativação / Desativação de Contas**: Contas desativadas têm seus tokens revogados imediatamente, são bloqueadas no login, renovação de sessão e operações de carrinho, e só podem ser excluídas após desativação prévia.
+- **Painel Administrativo Responsivo (`/admin`)**:
+  - Interface adaptada para **desktop, tablet e celular**.
+  - **Dashboard** com indicadores de estoque, destaques e catálogo.
+  - **Gestão de Produtos**: CRUD completo, upload/substituição/remoção de imagens com limpeza física em disco, controle de destaques, especificações técnicas, variantes e reordenação visual.
+  - **Gestão de Categorias**: CRUD completo com upload e substituição de foto de capa, remoção automática de arquivo ao excluir categoria e ordenação personalizada.
+  - **Gestão de Usuários**: Listagem com busca e filtros por cargo/status, criação de contas, edição de dados, redefinição de senha respeitando hierarquia, ativação/desativação instantânea e exclusão segura.
+- **Experiência de Loja & Carrinho Sincronizado**:
+  - Vitrine com carrossel de destaques, listagem de categorias com fotos, filtros combinados (categoria, disponibilidade, busca textual e ordenação) e página de detalhes do produto.
+  - **Carrinho de compras persistente** integrado ao backend por usuário autenticado e fluxo de checkout.
+- **Qualidade e Testes Automatizados**:
+  - Suíte de **Testes de Integração** cobrindo autenticação, hierarquia de cargos, gestão de usuários, upload/limpeza de imagens de produtos e categorias, atributos de produtos, carrinho e rate limiting.
 
-- **Arquitetura de Segurança Robust**:
-    - **Autenticação e Autorização**: Implementação completa utilizando Spring Security com JSON Web Tokens (JWT).
-    - **Gestão de Sessão**: Fluxo de autenticação moderno com suporte a `Access Token` (curta duração) e `Refresh Token` (armazenado em banco de dados), garantindo segurança e melhor experiência de usuário.
-    - **Proteção de Dados**: Hashing de senhas com BCrypt e configuração de CORS restrita.
-- **Testes Automatizados (Garantia de Qualidade)**:
-    - O projeto possui uma suíte de testes robusta, incluindo **Testes de Integração** que validam desde a camada de segurança até operações complexas de banco de dados (`ProdutoSegurancaIntegrationTest`, `AuthRoleIntegrationTest`, `ProdutoControllerIntegrationTest`).
-- **Backend Moderno e Escável**:
-    - Utilização de **Java 26** e **Spring Boot 4**.
-    - Uso de **MapStruct** para mapeamento eficiente entre entidades e DTOs, e **Lombok** para reduzir *boilerplate*.
-    - **Rate Limiting** implementado para proteção contra abuso da API.
-- **Frontend com Alta Performance**:
-    - Aplicação construída com **React 19** e **React Router 7**, utilizando **TypeScript** para garantir segurança de tipos e **Tailwind CSS** para uma interface moderna e responsiva.
+---
 
 ## Tecnologias Utilizadas
 
 ### Backend
-- **Java 26**, **Spring Boot 4.0.3**
-- **Spring Security** (JWT + Refresh Token + BCrypt)
-- **Spring Data JPA** com **MySQL 8.0**
-- **Docker** para orquestração de ambiente (Contêineres para App, DB e DB de Testes)
-- **Spring Actuator** (Monitoramento)
+- **Java 26** & **Spring Boot 4.0.3**
+- **Spring Security** (JWT + Refresh Token Rotation + BCrypt)
+- **Spring Data JPA** & **MySQL 8.0**
 - **MapStruct** & **Lombok**
+- **Rate Limiting** por IP e **Problem Details (RFC 7807)** para respostas de erro padronizadas
+- **SpringDoc OpenAPI / Swagger UI** & **Spring Actuator**
 
 ### Frontend
-- **React 19**, **TypeScript**
+- **React 19** & **TypeScript**
 - **React Router 7**
-- **Tailwind CSS**
+- **TanStack React Query**
+- **Tailwind CSS 4** & **Lucide Icons**
 
-## Recursos do Projeto
-
-- **Autenticação**: JWT com Refresh Token.
-- **CORS**: Configuração de segurança de origem.
-- **Proteção**: Rate Limiting de requisições.
-- **Documentação**: OpenAPI/Swagger integrado.
-- **Banco de dados**: Inclui scripts SQL (`backend/database/catalog.sql`) para inicialização do catálogo em ambiente de desenvolvimento. *Nota: Esta pasta destina-se exclusivamente a testes e ao bootstrapping inicial do ambiente, não sendo necessária em contextos de produção.*
+---
 
 ## Como Executar o Projeto
 
 ### Pré-requisitos
-- Docker e Docker Compose instalados.
+- **Docker** e **Docker Compose** instalados.
 
-### Passos
-1. Clone o repositório.
-2. Na raiz do projeto, execute o comando:
-   ```bash
-   docker compose up --build
-   ```
-3. O frontend estará disponível em `http://localhost:5173` e a API em `http://localhost:65062`.
+### 1. Configurar o arquivo `.env` do Backend
+Crie o arquivo `backend/.env` copiando o modelo de exemplo:
 
-### Executando Testes
-Para rodar os testes de integração com um banco de dados isolado (garantindo um ambiente limpo e profissional), utilize o comando correspondente ao seu sistema operacional:
-
-**No Linux / macOS (Bash):**
+**No Linux / macOS:**
 ```bash
-docker compose -f docker-compose.test.yml run --rm backend-tests mvn test && docker compose -f docker-compose.test.yml down
+cp backend/.env.example backend/.env
 ```
 
 **No Windows (PowerShell):**
 ```powershell
-docker compose -f .\docker-compose.test.yml run --rm backend-tests mvn test; docker compose -f .\docker-compose.test.yml down
+Copy-Item backend\.env.example backend\.env
 ```
-*Estes comandos executam os testes em um container dedicado e removem automaticamente a infraestrutura de testes após a conclusão.*
 
-### Configuração do Ambiente
-
-Para rodar o backend corretamente, é necessário criar um arquivo `.env` dentro da pasta `backend/` com as seguintes variáveis:
-
+Ou crie manualmente o arquivo `backend/.env` com o seguinte conteúdo:
 ```env
-JWT_SECRET=sua_chave_secreta_aqui
+JWT_SECRET=dGVzdGUtand0LXNlY3JldC1wYXJhLWRlc2Vudm9sdmltZW50by1sb2NhbC0yNTZiaXRz
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=sua_senha_admin
+ADMIN_PASSWORD=admin12345
+```
+> **Importante:**
+> - `JWT_SECRET` deve ser uma chave codificada em **Base64** com pelo menos 32 bytes (256 bits).
+> - `ADMIN_PASSWORD` deve ter entre **8 e 24 caracteres** (o usuário administrador inicial é criado automaticamente na subida da API pelo `AdminBootstrap`).
+
+### 2. Subir os containers
+Na raiz do projeto, execute:
+```bash
+docker compose up --build
 ```
 
-#### Gerando o JWT Secret
-Para a segurança do JWT, utilize uma string longa e aleatória, codificada em **Base64**. Você pode gerar uma utilizando ferramentas online como [RandomKeygen](https://randomkeygen.com/) ou comandos no terminal, garantindo que ela tenha pelo menos 32 bytes (256 bits).
+O ambiente já inicia com o catálogo inicial populado (`backend/database/catalog.sql`) e com as imagens iniciais em `backend/uploads/`:
+- **Loja / Frontend:** `http://localhost:5173`
+- **Painel Administrativo:** `http://localhost:5173/admin`
+- **API Backend:** `http://localhost:65062`
+- **Swagger UI:** `http://localhost:65062/swagger-ui.html`
 
+---
 
+## Executando os Testes Automatizados
+
+Os testes de integração utilizam um container MySQL isolado (`docker-compose.test.yml`). Usando a flag `-p projeto-loja-test`, você pode rodar toda a suíte sem interromper os containers de desenvolvimento:
+
+**No Linux / macOS (Bash):**
+```bash
+docker compose -p projeto-loja-test -f docker-compose.test.yml run --rm backend-tests mvn test && docker compose -p projeto-loja-test -f docker-compose.test.yml down -v
+```
+
+**No Windows (PowerShell):**
+```powershell
+docker compose -p projeto-loja-test -f .\docker-compose.test.yml run --rm backend-tests mvn test; docker compose -p projeto-loja-test -f .\docker-compose.test.yml down -v
+```
