@@ -73,8 +73,15 @@ public class AuthService {
       throw new CredencialInvalidaException("Usuário ou senha inválidos.");
     }
     UsuarioModel usuario = usuarios.findByUsername(credenciais.username().trim())
-        .filter(candidato -> passwordEncoder.matches(credenciais.senha(), candidato.getSenha()))
         .orElseThrow(() -> new CredencialInvalidaException("Usuário ou senha inválidos."));
+
+    if (!usuario.isAtivo()) {
+      throw new CredencialInvalidaException("Seu usuário foi desativado.");
+    }
+
+    if (!passwordEncoder.matches(credenciais.senha(), usuario.getSenha())) {
+      throw new CredencialInvalidaException("Usuário ou senha inválidos.");
+    }
 
     Instant agora = Instant.now();
     Instant expiraEm = agora.plus(refreshTokenTtlDays, ChronoUnit.DAYS);
@@ -100,6 +107,10 @@ public class AuthService {
       tokenAtual.setRevokedAt(agora);
       refreshTokens.save(tokenAtual);
       throw new CredencialInvalidaException("Refresh token inválido ou expirado.");
+    }
+    if (!tokenAtual.getUsuario().isAtivo()) {
+      revogarFamilia(tokenAtual.getFamilyId(), agora);
+      throw new CredencialInvalidaException("Seu usuário foi desativado.");
     }
 
     tokenAtual.setRevokedAt(agora);
@@ -141,9 +152,12 @@ public class AuthService {
 
   @Transactional(readOnly = true)
   public Cargo buscarCargo(String username) {
-    return usuarios.findByUsername(username)
-        .orElseThrow(() -> new CredencialInvalidaException("Usuário não encontrado."))
-        .getCargo();
+    UsuarioModel usuario = usuarios.findByUsername(username)
+        .orElseThrow(() -> new CredencialInvalidaException("Usuário não encontrado."));
+    if (!usuario.isAtivo()) {
+      throw new CredencialInvalidaException("Seu usuário foi desativado.");
+    }
+    return usuario.getCargo();
   }
 
   @Transactional
@@ -156,6 +170,9 @@ public class AuthService {
 
     UsuarioModel usuario = usuarios.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+    if (!usuario.isAtivo()) {
+      throw new CredencialInvalidaException("Seu usuário foi desativado.");
+    }
     if (!passwordEncoder.matches(dados.senhaAtual(), usuario.getSenha())) {
       throw new IllegalArgumentException("Senha atual incorreta.");
     }

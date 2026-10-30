@@ -31,4 +31,7 @@ public class UsuarioModel {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private Cargo cargo;
+
+  @Column(nullable = false)
+  private boolean ativo = true;
 }

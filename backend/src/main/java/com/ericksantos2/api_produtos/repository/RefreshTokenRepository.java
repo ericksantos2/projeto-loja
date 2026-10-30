@@ -26,4 +26,8 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshTokenModel,
   @Query("update RefreshTokenModel token set token.revokedAt = :revokedAt "
       + "where token.usuario.id = :usuarioId and token.revokedAt is null")
   int revogarAtivosDoUsuario(@Param("usuarioId") Long usuarioId, @Param("revokedAt") Instant revokedAt);
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query("delete from RefreshTokenModel token where token.usuario.id = :usuarioId")
+  int deleteByUsuarioId(@Param("usuarioId") Long usuarioId);
 }

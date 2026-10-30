@@ -2,6 +2,7 @@ package com.ericksantos2.api_produtos.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -61,7 +62,29 @@ public class SecurityConfig {
     return new NimbusJwtEncoder(new ImmutableSecret<>(jwtSecretKey));
   }
 
+  /**
+   * Security filter chain separada para servir imagens estáticas sem autenticação.
+   * Essa chain não configura oauth2ResourceServer, então não exige JWT.
+   */
   @Bean
+  @Order(1)
+  SecurityFilterChain staticResourcesFilterChain(HttpSecurity http) throws Exception {
+    http
+        .securityMatcher("/api/imagens/**")
+        .cors(cors -> {})
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .headers(headers -> headers
+            .frameOptions(frame -> frame.sameOrigin())
+            .xssProtection(xss -> {})
+            .contentTypeOptions(contentType -> {}));
+
+    return http.build();
+  }
+
+  @Bean
+  @Order(2)
   SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitFilter rateLimiterFilter) throws Exception {
     http
         .addFilterBefore(rateLimiterFilter, UsernamePasswordAuthenticationFilter.class)
@@ -76,6 +99,7 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/auth/change-role").hasAnyRole("ADMIN", "GESTOR")
+            .requestMatchers("/api/usuarios", "/api/usuarios/**").hasAnyRole("ADMIN", "GESTOR")
             .requestMatchers("/api/carrinho/**").authenticated()
             .requestMatchers("/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
