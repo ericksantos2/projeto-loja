@@ -1,4 +1,4 @@
-import { KeyRound, LayoutDashboard, LogOut, UserRound, X } from "lucide-react";
+import { KeyRound, LayoutDashboard, LogOut, Trash2, UserRound, X } from "lucide-react";
 import { Link, NavLink } from "react-router";
 import { mainNavigation } from "./navigation";
 import Drawer from "./ui/Drawer";
@@ -12,6 +12,7 @@ type MobileMenuProps = {
   canAccessPanel?: boolean;
   onOpenLogin?: () => void;
   onOpenChangePassword?: () => void;
+  onOpenDeleteAccount?: () => void;
   onLogout?: () => void;
 };
 
@@ -23,6 +24,7 @@ export default function MobileMenu({
   canAccessPanel = false,
   onOpenLogin,
   onOpenChangePassword,
+  onOpenDeleteAccount,
   onLogout,
 }: MobileMenuProps) {
   return (
@@ -107,11 +109,22 @@ export default function MobileMenu({
                 type="button"
                 onClick={() => {
                   onClose();
-                  onLogout?.();
+                  onOpenDeleteAccount?.();
                 }}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-base font-medium text-red-600 transition hover:bg-red-50 cursor-pointer"
               >
-                <LogOut className="h-5 w-5" aria-hidden="true" />
+                <Trash2 className="h-5 w-5" aria-hidden="true" />
+                Excluir minha conta
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onLogout?.();
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-left text-base font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 cursor-pointer"
+              >
+                <LogOut className="h-5 w-5 text-slate-500" aria-hidden="true" />
                 Sair
               </button>
             </>

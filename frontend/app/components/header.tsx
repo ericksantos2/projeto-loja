@@ -1,4 +1,4 @@
-import { KeyRound, LayoutDashboard, LogOut, Menu, ShoppingCart, UserRound } from "lucide-react";
+import { KeyRound, LayoutDashboard, LogOut, Menu, ShoppingCart, Trash2, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router";
 import {
@@ -12,6 +12,7 @@ import {
 } from "~/services/auth";
 import { useCart } from "~/components/CartContext";
 import ChangePasswordModal from "./ChangePasswordModal";
+import DeleteAccountModal from "./DeleteAccountModal";
 import MobileMenu from "./MobileMenu";
 import { mainNavigation } from "./navigation";
 import IconButton from "./ui/IconButton";
@@ -26,6 +27,7 @@ export default function Header() {
   const [canAccessPanel, setCanAccessPanel] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const isMenuOpen = panelState === "menu";
   const { isCartOpen, openCart, closeCart, openLogin, itemCount } = useCart();
@@ -185,12 +187,25 @@ export default function Header() {
                     <button
                       type="button"
                       role="menuitem"
+                      onClick={() => {
+                        setIsAccountMenuOpen(false);
+                        setIsDeleteAccountOpen(true);
+                      }}
+                      className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      Excluir minha conta
+                    </button>
+                    <div className="my-1 border-t border-slate-100" />
+                    <button
+                      type="button"
+                      role="menuitem"
                       onClick={async () => {
                         setIsAccountMenuOpen(false);
                         await logout();
                         updateAuthState();
                       }}
-                      className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                      className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
                     >
                       <LogOut className="h-4 w-4" aria-hidden="true" />
                       Sair
@@ -240,6 +255,7 @@ export default function Header() {
           canAccessPanel={canAccessPanel}
           onOpenLogin={openLogin}
           onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+          onOpenDeleteAccount={() => setIsDeleteAccountOpen(true)}
           onLogout={async () => {
             await logout();
             updateAuthState();
@@ -252,6 +268,16 @@ export default function Header() {
       isOpen={isChangePasswordOpen}
       onClose={() => setIsChangePasswordOpen(false)}
       onPasswordChanged={clearAuthSession}
+    />
+
+    <DeleteAccountModal
+      isOpen={isDeleteAccountOpen}
+      username={username}
+      onClose={() => setIsDeleteAccountOpen(false)}
+      onAccountDeleted={() => {
+        clearAuthSession();
+        updateAuthState();
+      }}
     />
     </>
   );

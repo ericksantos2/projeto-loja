@@ -1,55 +1,61 @@
-import { api } from "~/services/api";
 import {
   clearSession,
   getStoredAccessToken,
   getStoredRefreshToken,
   getStoredRole,
   getStoredUsername,
-  onAuthChanged,
+  onAuthChanged as onSessionAuthChanged,
   saveIdentity,
   saveSession,
   type AuthTokenResponse,
-} from "~/services/session";
+} from "./session";
+import { api } from "./api";
+import type { CargoUsuario } from "./users";
 
-export type { AuthTokenResponse };
-export { onAuthChanged };
-
-export function getAuthUsername() {
-  return getStoredUsername();
+export interface UsuarioAtual {
+  username: string;
+  cargo: CargoUsuario;
 }
 
-export function getAuthRole() {
-  return getStoredRole();
-}
-
-export function isAuthenticated() {
-  return Boolean(getStoredAccessToken());
-}
-
-export function getAccessToken() {
+export function getAccessToken(): string | null {
   return getStoredAccessToken();
 }
 
-export function getRefreshToken() {
+export function getRefreshToken(): string | null {
   return getStoredRefreshToken();
 }
 
-export function saveAuthSession(payload: AuthTokenResponse) {
-  saveSession(payload);
+export function isAuthenticated(): boolean {
+  return !!getAccessToken();
+}
+
+export function getAuthUsername(): string {
+  return getStoredUsername();
+}
+
+export function getAuthCargo(): string {
+  return getStoredRole();
+}
+
+export function saveAuthSession(data: AuthTokenResponse) {
+  saveSession(data);
+}
+
+export function saveAuthIdentity(username: string, cargo: string) {
+  saveIdentity(username, cargo);
 }
 
 export function clearAuthSession() {
   clearSession();
 }
 
-export type UsuarioAtual = {
-  username: string;
-  cargo: "USER" | "GESTOR" | "ADMIN";
-};
+export function onAuthChanged(callback: () => void) {
+  return onSessionAuthChanged(callback);
+}
 
 export async function fetchCurrentUser() {
   const usuario = await api.get<UsuarioAtual>("/auth/me", { requiresAuth: true });
-  saveIdentity(usuario.username, usuario.cargo);
+  saveAuthIdentity(usuario.username, usuario.cargo);
   return usuario;
 }
 
@@ -78,6 +84,15 @@ export async function changePassword(senhaAtual: string, novaSenha: string) {
     { senhaAtual, novaSenha },
     { requiresAuth: true },
   );
+}
+
+export async function deleteAccount(senha: string) {
+  await api.post<void>(
+    "/auth/delete-account",
+    { senha },
+    { requiresAuth: true },
+  );
+  clearAuthSession();
 }
 
 export async function logout() {
