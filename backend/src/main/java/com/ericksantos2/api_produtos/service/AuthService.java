@@ -18,12 +18,14 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ericksantos2.api_produtos.dto.auth.CredenciaisDTO;
+import com.ericksantos2.api_produtos.dto.auth.ExcluirContaDTO;
 import com.ericksantos2.api_produtos.exception.CredencialInvalidaException;
 import com.ericksantos2.api_produtos.dto.auth.AlterarSenhaDTO;
 import com.ericksantos2.api_produtos.dto.auth.TokenDTO;
 import com.ericksantos2.api_produtos.model.Cargo;
 import com.ericksantos2.api_produtos.model.RefreshTokenModel;
 import com.ericksantos2.api_produtos.model.UsuarioModel;
+import com.ericksantos2.api_produtos.repository.CarrinhoRepository;
 import com.ericksantos2.api_produtos.repository.RefreshTokenRepository;
 import com.ericksantos2.api_produtos.repository.UsuarioRepository;
 
@@ -33,6 +35,7 @@ public class AuthService {
 
   private final UsuarioRepository usuarios;
   private final RefreshTokenRepository refreshTokens;
+  private final CarrinhoRepository carrinhos;
   private final PasswordEncoder passwordEncoder;
   private final JwtEncoder jwtEncoder;
   private final long accessTokenTtlMinutes;
@@ -40,12 +43,14 @@ public class AuthService {
   private final String rootAdminUsername;
 
   public AuthService(UsuarioRepository usuarios, RefreshTokenRepository refreshTokens,
+      CarrinhoRepository carrinhos,
       PasswordEncoder passwordEncoder, JwtEncoder jwtEncoder,
       @Value("${api.auth.access-token-ttl-minutes:15}") long accessTokenTtlMinutes,
       @Value("${api.auth.refresh-token-ttl-days:30}") long refreshTokenTtlDays,
       @Value("${api.auth.admin.username}") String rootAdminUsername) {
     this.usuarios = usuarios;
     this.refreshTokens = refreshTokens;
+    this.carrinhos = carrinhos;
     this.passwordEncoder = passwordEncoder;
     this.jwtEncoder = jwtEncoder;
     this.accessTokenTtlMinutes = accessTokenTtlMinutes;
@@ -183,6 +188,36 @@ public class AuthService {
     usuario.setSenha(passwordEncoder.encode(dados.novaSenha()));
     usuarios.save(usuario);
     refreshTokens.revogarAtivosDoUsuario(usuario.getId(), Instant.now());
+  }
+
+  @Transactional
+  public void excluirPropriaConta(String username, ExcluirContaDTO dados) {
+    if (dados == null || dados.senha() == null || dados.senha().isBlank()) {
+      throw new IllegalArgumentException("Informe a senha para confirmar a exclusão.");
+    }
+
+    String alvo = username == null ? "" : username.trim();
+    if (alvo.equals(rootAdminUsername)) {
+      throw new IllegalArgumentException("O administrador principal não pode excluir a própria conta.");
+    }
+
+    UsuarioModel usuario = usuarios.findByUsername(alvo)
+        .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+
+    if (!usuario.isAtivo()) {
+      throw new CredencialInvalidaException("Seu usuário foi desativado.");
+    }
+
+    if (!passwordEncoder.matches(dados.senha(), usuario.getSenha())) {
+      throw new IllegalArgumentException("Senha incorreta.");
+    }
+
+    carrinhos.findByUsuarioId(usuario.getId()).ifPresent(carrinho -> {
+      carrinhos.delete(carrinho);
+      carrinhos.flush();
+    });
+    refreshTokens.deleteByUsuarioId(usuario.getId());
+    usuarios.delete(usuario);
   }
 
   private TokenDTO criarParDeTokens(UsuarioModel usuario, String familyId, Instant refreshExpiraEm, Instant agora) {

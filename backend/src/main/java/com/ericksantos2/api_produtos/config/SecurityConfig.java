@@ -98,6 +98,7 @@ public class SecurityConfig {
             .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/auth/delete-account").authenticated()
             .requestMatchers(HttpMethod.POST, "/api/auth/change-role").hasAnyRole("ADMIN", "GESTOR")
             .requestMatchers("/api/usuarios", "/api/usuarios/**").hasAnyRole("ADMIN", "GESTOR")
             .requestMatchers("/api/carrinho/**").authenticated()

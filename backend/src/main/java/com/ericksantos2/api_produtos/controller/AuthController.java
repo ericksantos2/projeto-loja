@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ericksantos2.api_produtos.config.ClientIpResolver;
 import com.ericksantos2.api_produtos.config.RateLimiterConfig;
 import com.ericksantos2.api_produtos.dto.auth.CredenciaisDTO;
+import com.ericksantos2.api_produtos.dto.auth.ExcluirContaDTO;
 import com.ericksantos2.api_produtos.dto.auth.AlterarSenhaDTO;
 import com.ericksantos2.api_produtos.dto.auth.RefreshTokenDTO;
 import com.ericksantos2.api_produtos.dto.auth.TokenDTO;
@@ -74,6 +75,14 @@ public class AuthController {
       @AuthenticationPrincipal Jwt jwt,
       @RequestBody AlterarSenhaDTO dados) {
     authService.alterarSenha(jwt.getSubject(), dados);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/delete-account")
+  public ResponseEntity<Void> deleteAccount(
+      @AuthenticationPrincipal Jwt jwt,
+      @RequestBody ExcluirContaDTO dados) {
+    authService.excluirPropriaConta(jwt.getSubject(), dados);
     return ResponseEntity.noContent().build();
   }
 
