@@ -9,4 +9,5 @@ public interface UsuarioRepository extends JpaRepository<UsuarioModel, Long> {
   Optional<UsuarioModel> findByUsername(String username);
   boolean existsByUsername(String username);
   List<UsuarioModel> findAllByOrderByUsernameAsc();
+  long countByCargoAndAtivoTrue(com.ericksantos2.api_produtos.model.Cargo cargo);
 }

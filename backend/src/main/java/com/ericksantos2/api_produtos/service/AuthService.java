@@ -198,11 +198,18 @@ public class AuthService {
 
     String alvo = username == null ? "" : username.trim();
     if (alvo.equals(rootAdminUsername)) {
-      throw new IllegalArgumentException("O administrador principal não pode excluir a própria conta.");
+      throw new IllegalArgumentException("O administrador principal configurado no sistema não pode excluir a própria conta.");
     }
 
     UsuarioModel usuario = usuarios.findByUsername(alvo)
         .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+
+    if (usuario.getCargo() == Cargo.ADMIN) {
+      long totalAdminsAtivos = usuarios.countByCargoAndAtivoTrue(Cargo.ADMIN);
+      if (totalAdminsAtivos <= 1) {
+        throw new IllegalArgumentException("Não é possível excluir a conta pois você é o único administrador ativo do sistema.");
+      }
+    }
 
     if (!usuario.isAtivo()) {
       throw new CredencialInvalidaException("Seu usuário foi desativado.");
