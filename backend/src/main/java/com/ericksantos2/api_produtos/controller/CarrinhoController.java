@@ -1,6 +1,5 @@
 package com.ericksantos2.api_produtos.controller;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -41,26 +40,20 @@ public class CarrinhoController {
   @PostMapping("/itens")
   public ResponseEntity<CarrinhoResponseDTO> adicionar(
       @AuthenticationPrincipal Jwt jwt, @RequestBody AdicionarItemCarrinhoDTO dados) {
-    try {
-      return ResponseEntity.status(HttpStatus.CREATED)
-          .body(service.adicionar(jwt.getSubject(), dados.produtoId(), dados.quantidade()));
-    } catch (NoSuchElementException error) {
-      return ResponseEntity.notFound().<CarrinhoResponseDTO>build();
-    } catch (IllegalArgumentException error) {
-      return ResponseEntity.badRequest().<CarrinhoResponseDTO>build();
-    }
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(service.adicionar(jwt.getSubject(), dados.produtoId(), dados.quantidade()));
   }
 
   @PutMapping("/itens/{produtoId}")
   public ResponseEntity<CarrinhoResponseDTO> atualizarQuantidade(@AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID produtoId, @RequestBody AtualizarQuantidadeCarrinhoDTO dados) {
-    try {
-      return ResponseEntity.ok(service.atualizarQuantidade(jwt.getSubject(), produtoId, dados.quantidade()));
-    } catch (NoSuchElementException error) {
-      return ResponseEntity.notFound().<CarrinhoResponseDTO>build();
-    } catch (IllegalArgumentException error) {
-      return ResponseEntity.badRequest().<CarrinhoResponseDTO>build();
-    }
+    return ResponseEntity.ok(service.atualizarQuantidade(jwt.getSubject(), produtoId, dados.quantidade()));
+  }
+
+  @DeleteMapping("/itens")
+  public ResponseEntity<Void> limpar(@AuthenticationPrincipal Jwt jwt) {
+    service.limpar(jwt.getSubject());
+    return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/itens/{produtoId}")

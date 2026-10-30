@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ericksantos2.api_produtos.dto.carrinho.CarrinhoResponseDTO;
 import com.ericksantos2.api_produtos.dto.carrinho.ItemCarrinhoResponseDTO;
+import com.ericksantos2.api_produtos.exception.CredencialInvalidaException;
 import com.ericksantos2.api_produtos.model.CarrinhoModel;
 import com.ericksantos2.api_produtos.model.ItemCarrinhoModel;
 import com.ericksantos2.api_produtos.model.ProdutoModel;
@@ -32,6 +33,7 @@ public class CarrinhoService {
 
   @Transactional
   public CarrinhoResponseDTO consultar(String username) {
+    exigirUsuarioAtivo(username);
     return carrinhos.findByUsuarioUsername(username)
         .map(this::montarResposta)
         .orElseGet(() -> new CarrinhoResponseDTO(List.of(), 0));
@@ -39,8 +41,10 @@ public class CarrinhoService {
 
   @Transactional
   public CarrinhoResponseDTO adicionar(String username, UUID produtoId, Integer quantidade) {
+    exigirUsuarioAtivo(username);
     validarQuantidade(quantidade);
     ProdutoModel produto = buscarProduto(produtoId);
+    validarDisponibilidade(produto);
     CarrinhoModel carrinho = obterOuCriar(username);
     ItemCarrinhoModel item = encontrarItem(carrinho, produtoId);
     int novaQuantidade = quantidade + (item == null ? 0 : item.getQuantidade());
@@ -59,8 +63,10 @@ public class CarrinhoService {
 
   @Transactional
   public CarrinhoResponseDTO atualizarQuantidade(String username, UUID produtoId, Integer quantidade) {
+    exigirUsuarioAtivo(username);
     validarQuantidade(quantidade);
     ProdutoModel produto = buscarProduto(produtoId);
+    validarDisponibilidade(produto);
     CarrinhoModel carrinho = obter(username);
     ItemCarrinhoModel item = encontrarItem(carrinho, produtoId);
     if (item == null) throw new NoSuchElementException("Produto não encontrado no carrinho.");
@@ -71,10 +77,28 @@ public class CarrinhoService {
   }
 
   @Transactional
+  public void limpar(String username) {
+    exigirUsuarioAtivo(username);
+    carrinhos.findByUsuarioUsername(username).ifPresent(carrinho -> {
+      carrinho.getItens().clear();
+      carrinhos.save(carrinho);
+    });
+  }
+
+  @Transactional
   public void remover(String username, UUID produtoId) {
+    exigirUsuarioAtivo(username);
     carrinhos.findByUsuarioUsername(username).ifPresent(carrinho -> {
       carrinho.getItens().removeIf(item -> item.getProdutoId().equals(produtoId));
       carrinhos.save(carrinho);
+    });
+  }
+
+  private void exigirUsuarioAtivo(String username) {
+    usuarios.findByUsername(username).ifPresent(usuario -> {
+      if (!usuario.isAtivo()) {
+        throw new CredencialInvalidaException("Seu usuário foi desativado.");
+      }
     });
   }
 
@@ -108,6 +132,12 @@ public class CarrinhoService {
   private void validarQuantidade(Integer quantidade) {
     if (quantidade == null || quantidade < 1) {
       throw new IllegalArgumentException("A quantidade deve ser pelo menos 1.");
+    }
+  }
+
+  private void validarDisponibilidade(ProdutoModel produto) {
+    if (produto.getEstoque() == null || produto.getEstoque() <= 0) {
+      throw new IllegalArgumentException("Produto indisponível no momento.");
     }
   }
 
